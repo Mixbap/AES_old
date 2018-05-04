@@ -82,17 +82,33 @@ end
 end
 
 %----Create output file data (.dat)---------------------------------------------------
+%data signal
 fdata = fopen('input_data.dat','wb');
-fwrite(fdata, Data_Payload, 'double');
+fprintf(fdata, '%d\n', length(Data_Payload));
+fprintf(fdata, '%d\n', Data_Payload);
 fclose(fdata);
 
-% fdata = fopen('data_length.dat','wb');
-% fwrite(fdata, Data_length, 'double');
-% fclose(fdata);
+%enable signal
+enable = 1;
+i = 0;
+while (i < (length(Data_Payload) - 1))
+    n = randi([0 1], 1, 1);
+    if (n)
+        i = i + 1;
+    end
+    enable = [enable n];
+end
 
-% fdata = fopen('output_data.dat','r');
-% B = fread(fdata, 256, 'double');
-% fclose(fdata);
+fenable = fopen('input_enable.dat','wb');
+fprintf(fenable, '%d\n', length(enable));
+fprintf(fenable, '%d\n', enable);
+fclose(fenable);
+
+%encrypted data signal
+fencrypt = fopen('encrypt_data_matlab.dat','wb');
+fprintf(fencrypt, '%d\n', length(Encrypted_Data));
+fprintf(fencrypt, '%d\n', Encrypted_Data);
+fclose(fencrypt);;
 
 
 
