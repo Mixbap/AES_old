@@ -88,7 +88,9 @@ assign ctr_encrypt_aes = ctr_reg_encrypt ^ key_aes;
 always @(posedge clk)
 	if (reset)
 		ctr_reg_in <= 1'b0;
-	else if (input_en | ~(count_in_en == 1'b1))
+	else if (input_en)
+		ctr_reg_in[WIDTH_KEY-1:0] <= {ctr_reg_in[WIDTH_KEY-WIDTH-1:0], input_data[WIDTH-1:0]};
+	else if (~(count_in_en == 1'b1))
 		ctr_reg_in[WIDTH_KEY-1:0] <= {ctr_reg_in[WIDTH_KEY-WIDTH-1:0], input_data[WIDTH-1:0]};
 
 /**************************************************************************************************/
@@ -96,6 +98,8 @@ always @(posedge clk)
 always @(posedge clk)
 	if (reset)
 		count_in_en <= 1'b0;
+	else if (clr_count_in_en & input_en)
+		count_in_en <= 1'b1;
 	else if (clr_count_in_en)
 		count_in_en <= 1'b0;
 	else if (input_en)
