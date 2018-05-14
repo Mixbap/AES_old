@@ -46,14 +46,12 @@ reg	[WIDTH-1:0]		input_data;
 reg				input_en;
 reg				input_last;
 reg	[WIDTH_KEY-1:0]		key_aes;
-reg	[WIDTH_NONCE-1:0]	ctr_nonce;
-reg	[WIDTH_FLAG-1:0]	ctr_flag;
+reg	[WIDTH_NONCE-1:0]	ccm_ctr_nonce;
+reg	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
 
 //outputs
 wire	[WIDTH-1:0]		out_data;
 wire				out_en;
-wire				max_in_en_val;
-wire	[3:0]			in_en_val;
 
 //Matlab data vectors
 reg	[31:0]			input_data_len;
@@ -80,12 +78,10 @@ ccm_ctr ccm_ctr( 	.clk(clk),
 			.input_en(input_en), 
 			.input_last(input_last), 
 			.key_aes(key_aes),
-			.ctr_nonce(ctr_nonce), 
-			.ctr_flag(ctr_flag), 
+			.ccm_ctr_nonce(ccm_ctr_nonce), 
+			.ccm_ctr_flag(ccm_ctr_flag), 
 			.out_data(out_data), 
-			.out_en(out_en),
-			.max_in_en_val(max_in_en_val),
-			.in_en_val(in_en_val));
+			.out_en(out_en));
 
 
 /*************************************************************************************
@@ -138,8 +134,8 @@ begin
 	input_last = 1'b0;
 	key_aes = 128'hff00ff00ff00ff00ff00ff00ff00ff00;
 	//key_aes = 128'd0;
-	ctr_nonce = 1'b0;
-	ctr_flag = 1'b0;
+	ccm_ctr_nonce = 1'b0;
+	ccm_ctr_flag = 1'b0;
 	
 end
 endtask
@@ -169,8 +165,6 @@ begin
 	$fclose(input_data_fd);
 	$fclose(input_enable_fd);
 	$display("Matlab vector written\n");
-	$display("%d\n", input_data_len);
-	$display("%b\n", input_data_m[0]);
 end
 endtask
 /**************************************************************************************************/
