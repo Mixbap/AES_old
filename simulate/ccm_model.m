@@ -84,14 +84,34 @@ end
 %----Create output file data (.dat)---------------------------------------------------
 %data signal
 fdata = fopen('input_data.dat','wb');
-fprintf(fdata, '%d\n', length(Data_Payload));
-fprintf(fdata, '%d\n', Data_Payload);
+fprintf(fdata, '%d\n', ceil(Data_length/8));
+for i = 1 : length(Data_Payload)
+switch (mod(i, 8))
+    case 0
+        fprintf(fdata, '%d\n', Data_Payload(i - 7));
+    case 1
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 8 )); 
+    case 2
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 7 ));
+    case 3
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 6 ));
+    case 4
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 5 )); 
+    case 5
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 4 ));
+    case 6
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 3 ));
+    case 7
+       fprintf(fdata, '%d', Data_Payload( (i - mod(i,8)) + 2 ));
+end
+
+end    
 fclose(fdata);
 
 %enable signal
 enable = 1;
 i = 0;
-while (i < (length(Data_Payload) - 1))
+while (i < ceil(Data_length/8)-1)
     n = randi([0 1], 1, 1);
     if (n)
         i = i + 1;
@@ -106,9 +126,28 @@ fclose(fenable);
 
 %encrypted data signal
 fencrypt = fopen('encrypt_data_matlab.dat','wb');
-fprintf(fencrypt, '%d\n', length(Encrypted_Data));
-fprintf(fencrypt, '%d\n', Encrypted_Data);
-fclose(fencrypt);;
+fprintf(fencrypt, '%d\n', length(Encrypted_Data)/8);
+for i = 1 : length(Encrypted_Data)
+switch (mod(i, 8))
+    case 0
+        fprintf(fencrypt, '%d\n', Encrypted_Data(i - 7));
+    case 1
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 8 )); 
+    case 2
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 7 ));
+    case 3
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 6 ));
+    case 4
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 5 )); 
+    case 5
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 4 ));
+    case 6
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 3 ));
+    case 7
+       fprintf(fencrypt, '%d', Encrypted_Data( (i - mod(i,8)) + 2 ));
+end
+end
+fclose(fencrypt);
 
 
 
