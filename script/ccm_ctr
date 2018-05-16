@@ -1,0 +1,19 @@
+transcript on
+vlib work
+
+vlog -v +incdir+./ ./ccm_ctr.v
+vlog -v +incdir+./ ./ccm_ctr_tb.v
+
+vsim -t 1ns test_tb
+
+add wave /test_tb/clk
+add wave /test_tb/reset
+add wave /test_tb/input_data
+add wave /test_tb/input_en
+add wave /test_tb/input_last
+add wave /test_tb/out_data
+add wave /test_tb/out_en
+
+configure wave -timelineunits us
+run -all
+wave zoom full
