@@ -23,8 +23,8 @@ module test_tb;
 parameter clk_dly = 20;
 parameter rst_dly = 50;
 
-parameter  LENGTH_DATA = 230;
-parameter  LENGTH_IN_EN = 58;
+parameter  LENGTH_DATA = 272;
+parameter  LENGTH_IN_EN = 79;
 
 parameter  WIDTH = 8;
 parameter  WIDTH_NONCE = 100;
@@ -52,6 +52,7 @@ reg	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
 //outputs
 wire	[WIDTH-1:0]		out_data;
 wire				out_en;
+wire				out_last;
 
 //Matlab data vectors
 reg	[31:0]			input_data_len;
@@ -81,7 +82,8 @@ ccm_ctr ccm_ctr( 	.clk(clk),
 			.ccm_ctr_nonce(ccm_ctr_nonce), 
 			.ccm_ctr_flag(ccm_ctr_flag), 
 			.out_data(out_data), 
-			.out_en(out_en));
+			.out_en(out_en),
+			.out_last(out_last));
 
 
 /*************************************************************************************
@@ -112,6 +114,7 @@ begin
 	join
 	ccm_ctr_write2matlab;
 	wait_n_clocks(50);
+	$stop;
 end
 
 /*************************************************************************************
@@ -217,6 +220,8 @@ begin
 	input_last <= 1'b0;
 	input_enable_r <= 1'b0;
 	input_en <= 1'b0;
+
+	$display("Input enable was set\n");
 end
 endtask
 
@@ -237,7 +242,7 @@ begin
 		end
 		@(posedge clk);
 	end
-	$display("input test receive\n");
+	$display("Input data was set\n");
 	
 end
 endtask
