@@ -13,7 +13,7 @@
  **************************************************************************************************/
 module ccm_ctr_dly_fake_aes (
 	clk,
-	reset,
+	kill,
 	key_aes,
 	ccm_ctr_nonce,
 	ccm_ctr_flag,
@@ -26,7 +26,7 @@ module ccm_ctr_dly_fake_aes (
 /**************************************************************************************************
 *        PARAMETERS
  **************************************************************************************************/
- parameter  T_DLY = 3;
+ parameter  T_DLY = 10;
  parameter  WIDTH_NONCE = 100;
  parameter  WIDTH_FLAG = 8;
  parameter  WIDTH_COUNT = 20;
@@ -38,7 +38,7 @@ localparam  T_DLY_WIDTH = $clog2(T_DLY);
 *        I/O PORTS
  **************************************************************************************************/
 input				clk;
-input				reset;
+input				kill;
 input	[WIDTH_KEY-1:0]		key_aes;
 input	[WIDTH_NONCE-1:0]	ccm_ctr_nonce;
 input	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
@@ -60,7 +60,7 @@ reg	[WIDTH_KEY-1:0]		encrypt_buf;
  **************************************************************************************************/
 //encrypt_ctr_buf
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		encrypt_ctr_buf <= {WIDTH_COUNT{1'b0}};
 	else if (input_en_buf)
 		encrypt_ctr_buf <= encrypt_ctr_buf + {{WIDTH_COUNT-1{1'b0}}, 1'b1};
@@ -68,7 +68,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //encrypt_buf
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		encrypt_buf <= {WIDTH_KEY{1'b0}};
 	else if (~input_en_buf)
 		encrypt_buf <= {ccm_ctr_flag, ccm_ctr_nonce, encrypt_ctr_buf};
@@ -77,7 +77,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //count_dly
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		count_dly <= {T_DLY_WIDTH{1'b0}};
 	else if (input_en_buf_r)
 		count_dly <= count_dly + {{T_DLY_WIDTH-1{1'b0}}, 1'b1};
@@ -87,7 +87,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //input_en_buf_r
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		input_en_buf_r <= 1'b0;
 	else if (input_en_buf)
 		input_en_buf_r <= 1'b1;
@@ -98,7 +98,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //encrypt_en
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		encrypt_en <= 1'b0;
 	else if (count_dly == T_DLY-1)
 		encrypt_en <= 1'b1;

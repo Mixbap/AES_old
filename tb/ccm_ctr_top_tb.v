@@ -41,7 +41,7 @@ localparam  OUT_DATA_BYTE_VAL = LENGTH_DATA_OUT/8;
  *************************************************************************************/
 //inputs
 reg				clk;
-reg				reset;
+reg				kill;
 reg	[WIDTH-1:0]		input_data;
 reg				input_en;
 reg				input_last;
@@ -75,7 +75,7 @@ integer		output_data_fd;		//"output_data.dat"
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
 ccm_ctr_top ccm_ctr_top( 	.clk(clk), 
-				.reset(reset), 
+				.kill(kill), 
 				.input_data(input_data), 
 				.input_en(input_en), 
 				.input_last(input_last), 
@@ -95,7 +95,7 @@ ccm_ctr_top ccm_ctr_top( 	.clk(clk),
 initial
 begin
 	clk = 1'b0;
-	reset = 1'b0;
+	kill = 1'b0;
 end
 
 always
@@ -125,8 +125,8 @@ end
 //reset signal
 task ccm_ctr_rst;
 begin
-	reset <= 1'b1;
-	#rst_dly reset <= 1'b0;
+	kill <= 1'b1;
+	#rst_dly kill <= 1'b0;
 end
 endtask
 
@@ -152,10 +152,10 @@ endtask
 task ccm_ctr_set_matlab_data;
 integer i;
 begin
-	input_data_fd = $fopen("D:/Project/PROJECT_GIGABIT/CCM_AES/data/input_data.dat", "r");
+	input_data_fd = $fopen("../data/input_data.dat", "r");
 	$fscanf(input_data_fd, "%d", input_data_len);
 
-	input_enable_fd = $fopen("D:/Project/PROJECT_GIGABIT/CCM_AES/data/input_enable.dat", "r");
+	input_enable_fd = $fopen("../data/input_enable.dat", "r");
 	$fscanf(input_enable_fd, "%d", input_enable_len);
 
 	for (i = 0; i < input_data_len; i = i + 1)
@@ -179,7 +179,7 @@ endtask
 task ccm_ctr_write2matlab;
 integer i;
 begin
-	output_data_fd = $fopen("D:/Project/PROJECT_GIGABIT/CCM_AES/data/output_data.dat","w");
+	output_data_fd = $fopen("../data/output_data.dat","w");
 	$fdisplay(output_data_fd, "%d", OUT_DATA_BYTE_VAL);
 
 	for (i = 0; i < OUT_DATA_BYTE_VAL; i = i + 1)

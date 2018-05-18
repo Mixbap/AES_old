@@ -13,7 +13,7 @@
  **************************************************************************************************/
 module ccm_ctr_data_buf (
 	clk,
-	reset,
+	kill,
 	input_data,
 	input_en,
 	input_last,
@@ -42,7 +42,7 @@ localparam  WIDTH_BYTE_VAL = $clog2(WIDTH_KEY/8);
 *        I/O PORTS
  **************************************************************************************************/
 input				clk;
-input				reset;
+input				kill;
 input	[WIDTH-1:0]		input_data;
 input				input_en;
 input				input_last;
@@ -72,7 +72,7 @@ reg				out_last_flag;
 //Input shift register
 
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		in_buf <= {WIDTH_KEY{1'b0}};
 	else if (input_en & (~max_in_en_val) & out_ready)
 		in_buf <= {in_buf[WIDTH_KEY-WIDTH-1:0], input_data[WIDTH-1:0]};
@@ -82,7 +82,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //input last
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		input_last_r <= 1'b0;
 	else if (input_last)
 		input_last_r <= 1'b1;
@@ -93,7 +93,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //Counter input enable
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		in_en_val <= {WIDTH_BYTE_VAL{1'b0}};
 	else if (input_en & (~max_in_en_val) & out_ready)
 		in_en_val <= in_en_val + {{WIDTH_BYTE_VAL-1{1'b0}}, 1'b1};
@@ -103,7 +103,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //max_in_en_val
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		max_in_en_val <= 1'b0;
 	else if ((in_en_val == {{WIDTH_BYTE_VAL-4{1'b0}}, 4'd15}) & (input_en | input_last_r))
 		max_in_en_val <= 1'b1;
@@ -113,7 +113,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //Output shift register
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_buf <= {WIDTH_KEY{1'b0}};
 	else if (encrypt_en)
 		out_buf <= encrypt_data ^ in_buf;
@@ -125,7 +125,7 @@ assign out_data = out_buf[WIDTH_KEY-1:WIDTH_KEY-WIDTH];
 /**************************************************************************************************/
 //Output enable
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_en <= 1'b0;
 	else if (encrypt_en)
 		out_en <= 1'b1;
@@ -136,7 +136,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //Counter output enable
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_en_val <= {WIDTH_BYTE_VAL{1'b0}};
 	else if (out_en)
 		out_en_val <= out_en_val + {{WIDTH_BYTE_VAL-1{1'b0}}, 1'b1};
@@ -144,7 +144,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //out_last_flag
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_last_flag <= 1'b0;
 	else if (input_last_r & (out_en_val == {WIDTH_BYTE_VAL{1'b0}}))
 		out_last_flag <= 1'b1;
@@ -154,7 +154,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //Out last
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_last <= 1'b0;
 	else if ((out_en_val == {{WIDTH_BYTE_VAL-4{1'b0}}, 4'd14}) & out_last_flag)
 		out_last <= 1'b1;
@@ -164,7 +164,7 @@ always @(posedge clk)
 /**************************************************************************************************/
 //Out ready
 always @(posedge clk)
-	if (reset)
+	if (kill)
 		out_ready <= 1'b1;
 	else if (max_in_en_val)
 		out_ready <= 1'b0;

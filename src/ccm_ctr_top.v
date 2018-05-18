@@ -13,7 +13,7 @@
  **************************************************************************************************/
 module ccm_ctr_top (
 	clk,
-	reset,
+	kill,
 	input_data,
 	input_en,
 	input_last,
@@ -41,7 +41,7 @@ localparam  WIDTH_KEY = WIDTH_NONCE + WIDTH_FLAG + WIDTH_COUNT;
 *        I/O PORTS
  **************************************************************************************************/
 input				clk;
-input				reset;
+input				kill;
 input	[WIDTH-1:0]		input_data;
 input				input_en;
 input				input_last;
@@ -65,7 +65,7 @@ wire	[WIDTH_KEY-1:0]		encrypt_data;
  *      LOGIC                                                                                     *
  **************************************************************************************************/
 ccm_ctr_data_buf ccm_ctr_data_buf(	.clk(clk),
-					.reset(reset),
+					.kill(kill),
 					.input_data(input_data),
 					.input_en(input_en),
 					.input_last(input_last),
@@ -79,15 +79,15 @@ ccm_ctr_data_buf ccm_ctr_data_buf(	.clk(clk),
 					.out_ready(out_ready));
 
 /**************************************************************************************************/
-ccm_ctr_dly_fake_aes ccm_ctr_fake_aes(	.clk(clk),
-					.reset(reset),
-					.key_aes(key_aes),
-					.ccm_ctr_nonce(ccm_ctr_nonce),
-					.ccm_ctr_flag(ccm_ctr_flag),
-					.input_en_buf(input_en_buf),
+ccm_ctr_dly_fake_aes ccm_ctr_dly_fake_aes(	.clk(clk),
+						.kill(kill),
+						.key_aes(key_aes),
+						.ccm_ctr_nonce(ccm_ctr_nonce),
+						.ccm_ctr_flag(ccm_ctr_flag),
+						.input_en_buf(input_en_buf),
 
-					.encrypt_data(encrypt_data),
-					.encrypt_en(encrypt_en));
+						.encrypt_data(encrypt_data),
+						.encrypt_en(encrypt_en));
 
 /**************************************************************************************************/
 

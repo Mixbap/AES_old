@@ -33,7 +33,7 @@ localparam  WIDTH_KEY = WIDTH_NONCE + WIDTH_FLAG + WIDTH_COUNT;
  *************************************************************************************/
 //inputs
 reg				clk;
-reg				reset;
+reg				kill;
 reg	[WIDTH_KEY-1:0]		key_aes;
 reg	[WIDTH_NONCE-1:0]	ccm_ctr_nonce;
 reg	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
@@ -47,7 +47,7 @@ wire				encrypt_en;
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
 ccm_ctr_dly_fake_aes ccm_ctr_dly_fake_aes( 	.clk(clk), 
-						.reset(reset),  
+						.kill(kill),  
 						.key_aes(key_aes),
 						.ccm_ctr_nonce(ccm_ctr_nonce), 
 						.ccm_ctr_flag(ccm_ctr_flag),  
@@ -63,7 +63,7 @@ ccm_ctr_dly_fake_aes ccm_ctr_dly_fake_aes( 	.clk(clk),
 initial
 begin
 	clk = 1'b0;
-	reset = 1'b0;
+	kill = 1'b0;
 end
 
 always
@@ -89,8 +89,8 @@ end
 //reset signal
 task rst;
 begin
-	reset <= 1'b1;
-	#rst_dly reset <= 1'b0;
+	kill <= 1'b1;
+	#rst_dly kill <= 1'b0;
 end
 endtask
 
