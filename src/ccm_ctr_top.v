@@ -1,115 +1,96 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     ccm_ctr_dly_fake_aes.v                                                         *
+ *  File Name:     ccm_ctr_top.v                                                                  *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block CCM - encrypted counter                                                                 *
+ *  Block CCM - encrypted counter and xor input data                                              *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
-module ccm_ctr_dly_fake_aes (
+module ccm_ctr_top (
 	clk,
 	reset,
+	input_data,
+	input_en,
+	input_last,
 	key_aes,
 	ccm_ctr_nonce,
 	ccm_ctr_flag,
-	input_en_buf,
 	
-	encrypt_data,
-	encrypt_en
+	out_data,
+	out_en,
+	out_last,
+	out_ready
 	);
 
 /**************************************************************************************************
 *        PARAMETERS
  **************************************************************************************************/
- parameter  T_DLY = 3;
+ parameter  WIDTH = 8;
  parameter  WIDTH_NONCE = 100;
  parameter  WIDTH_FLAG = 8;
  parameter  WIDTH_COUNT = 20;
 
 localparam  WIDTH_KEY = WIDTH_NONCE + WIDTH_FLAG + WIDTH_COUNT;
-localparam  T_DLY_WIDTH = $clog2(T_DLY);
 
 /**************************************************************************************************
 *        I/O PORTS
  **************************************************************************************************/
 input				clk;
 input				reset;
+input	[WIDTH-1:0]		input_data;
+input				input_en;
+input				input_last;
 input	[WIDTH_KEY-1:0]		key_aes;
 input	[WIDTH_NONCE-1:0]	ccm_ctr_nonce;
 input	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
-input				input_en_buf;
 
-output	[WIDTH_KEY-1:0]		encrypt_data;
-output	reg			encrypt_en;
+output	[WIDTH-1:0]		out_data;
+output				out_en;
+output				out_last;
+output				out_ready;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-reg				input_en_buf_r;
-reg	[T_DLY_WIDTH-1:0]	count_dly;
-reg	[WIDTH_COUNT-1:0]	encrypt_ctr_buf;
-reg	[WIDTH_KEY-1:0]		encrypt_buf;
+wire				input_en_buf;
+wire				encrypt_en;
+wire	[WIDTH_KEY-1:0]		encrypt_data;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//encrypt_ctr_buf
-always @(posedge clk)
-	if (reset)
-		encrypt_ctr_buf <= {WIDTH_COUNT{1'b0}};
-	else if (input_en_buf)
-		encrypt_ctr_buf <= encrypt_ctr_buf + {{WIDTH_COUNT-1{1'b0}}, 1'b1};
+ccm_ctr_data_buf ccm_ctr_data_buf(	.clk(clk),
+					.reset(reset),
+					.input_data(input_data),
+					.input_en(input_en),
+					.input_last(input_last),
+
+					.encrypt_data(encrypt_data),
+					.encrypt_en(encrypt_en),
+					.max_in_en_val(input_en_buf),
+					.out_data(out_data),
+					.out_en(out_en),
+					.out_last(out_last),
+					.out_ready(out_ready));
 
 /**************************************************************************************************/
-//encrypt_buf
-always @(posedge clk)
-	if (reset)
-		encrypt_buf <= {WIDTH_KEY{1'b0}};
-	else if (~input_en_buf)
-		encrypt_buf <= {ccm_ctr_flag, ccm_ctr_nonce, encrypt_ctr_buf};
+ccm_ctr_dly_fake_aes ccm_ctr_fake_aes(	.clk(clk),
+					.reset(reset),
+					.key_aes(key_aes),
+					.ccm_ctr_nonce(ccm_ctr_nonce),
+					.ccm_ctr_flag(ccm_ctr_flag),
+					.input_en_buf(input_en_buf),
 
-
-/**************************************************************************************************/
-//count_dly
-always @(posedge clk)
-	if (reset)
-		count_dly <= {T_DLY_WIDTH{1'b0}};
-	else if (input_en_buf_r)
-		count_dly <= count_dly + {{T_DLY_WIDTH-1{1'b0}}, 1'b1};
-	else
-		count_dly <= {T_DLY_WIDTH{1'b0}};
-
-/**************************************************************************************************/
-//input_en_buf_r
-always @(posedge clk)
-	if (reset)
-		input_en_buf_r <= 1'b0;
-	else if (input_en_buf)
-		input_en_buf_r <= 1'b1;
-	else if (encrypt_en)
-		input_en_buf_r <= 1'b0;
-	
-
-/**************************************************************************************************/
-//encrypt_en
-always @(posedge clk)
-	if (reset)
-		encrypt_en <= 1'b0;
-	else if (count_dly == T_DLY-1)
-		encrypt_en <= 1'b1;
-	else 
-		encrypt_en <= 1'b0;
-
-/**************************************************************************************************/
-//encrypt_data
-assign encrypt_data = (count_dly == T_DLY) ? (encrypt_buf ^ key_aes) : {WIDTH_KEY{1'b0}};
+					.encrypt_data(encrypt_data),
+					.encrypt_en(encrypt_en));
 
 /**************************************************************************************************/
 
 
 endmodule
+

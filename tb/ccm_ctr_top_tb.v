@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     ccm_ctr_tb.v                                                                   *
+ *  File Name:     ccm_ctr_top_tb.v                                                               *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -53,6 +53,7 @@ reg	[WIDTH_FLAG-1:0]	ccm_ctr_flag;
 wire	[WIDTH-1:0]		out_data;
 wire				out_en;
 wire				out_last;
+wire				out_ready;
 
 //Matlab data vectors
 reg	[31:0]			input_data_len;
@@ -73,17 +74,18 @@ integer		output_data_fd;		//"output_data.dat"
  /*************************************************************************************
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
-ccm_ctr ccm_ctr( 	.clk(clk), 
-			.reset(reset), 
-			.input_data(input_data), 
-			.input_en(input_en), 
-			.input_last(input_last), 
-			.key_aes(key_aes),
-			.ccm_ctr_nonce(ccm_ctr_nonce), 
-			.ccm_ctr_flag(ccm_ctr_flag), 
-			.out_data(out_data), 
-			.out_en(out_en),
-			.out_last(out_last));
+ccm_ctr_top ccm_ctr_top( 	.clk(clk), 
+				.reset(reset), 
+				.input_data(input_data), 
+				.input_en(input_en), 
+				.input_last(input_last), 
+				.key_aes(key_aes),
+				.ccm_ctr_nonce(ccm_ctr_nonce), 
+				.ccm_ctr_flag(ccm_ctr_flag), 
+				.out_data(out_data), 
+				.out_en(out_en),
+				.out_last(out_last),
+				.out_ready(out_ready));
 
 
 /*************************************************************************************
@@ -139,6 +141,7 @@ begin
 	//key_aes = 128'd0;
 	ccm_ctr_nonce = 1'b0;
 	ccm_ctr_flag = 1'b0;
+	input_enable_r = 1'b0;
 	
 end
 endtask
@@ -210,7 +213,12 @@ integer i;
 begin
 	@(posedge clk)
 	for (i = 0; i <= input_enable_len; i = i + 1)
-	begin
+	begin	
+		while (~out_ready)
+		begin
+			input_en <= 1'b1;
+			@(posedge clk);
+		end
 		input_enable_r <= input_enable_m[i];
 		input_en <= input_enable_r;
 		if (i == input_enable_len)
@@ -235,6 +243,8 @@ begin
 	i = 0;
 	while (i < input_data_len)
 	begin
+		while (~out_ready)
+			@(posedge clk);
 		if (input_enable_r)
 		begin
 			input_data <= input_data_m[i];
@@ -269,6 +279,7 @@ end
 endtask
 
 /**************************************************************************************************/
+
 
 
 endmodule
