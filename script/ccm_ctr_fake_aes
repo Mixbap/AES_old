@@ -1,0 +1,19 @@
+transcript on
+vlib work
+
+vlog -v +incdir+./ ../src/ccm_ctr_fake_aes.v
+vlog -v +incdir+./ ../tb/ccm_ctr_fake_aes_tb.v
+
+vsim -t 1ns ccm_ctr_fake_aes_tb
+
+add wave /ccm_ctr_fake_aes_tb/clk
+add wave /ccm_ctr_fake_aes_tb/kill
+add wave /ccm_ctr_fake_aes_tb/in_ready
+add wave /ccm_ctr_fake_aes_tb/in_stream_idx
+add wave /ccm_ctr_fake_aes_tb/encrypt_ctr_data
+add wave /ccm_ctr_fake_aes_tb/encrypt_en
+add wave /ccm_ctr_fake_aes_tb/out_stream_idx
+
+configure wave -timelineunits us
+run -all
+wave zoom full

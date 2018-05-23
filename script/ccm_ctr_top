@@ -1,7 +1,6 @@
 transcript on
 vlib work
 
-
 vlog -v +incdir+./ ../src/ccm_ctr_top.v
 vlog -v +incdir+./ ../tb/ccm_ctr_top_tb.v
 
