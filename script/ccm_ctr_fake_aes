@@ -10,7 +10,7 @@ add wave /ccm_ctr_fake_aes_tb/clk
 add wave /ccm_ctr_fake_aes_tb/kill
 add wave /ccm_ctr_fake_aes_tb/in_ready
 add wave /ccm_ctr_fake_aes_tb/in_stream_idx
-add wave /ccm_ctr_fake_aes_tb/encrypt_ctr_data
+add wave -radix hexadecimal /ccm_ctr_fake_aes_tb/encrypt_ctr_data
 add wave /ccm_ctr_fake_aes_tb/encrypt_en
 add wave /ccm_ctr_fake_aes_tb/out_stream_idx
 
