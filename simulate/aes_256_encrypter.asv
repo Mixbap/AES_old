@@ -1,0 +1,99 @@
+script
+clear
+
+%--------------------------TEST AES----------------------------------------
+Input_hex = ['00' '44' '88' 'cc'
+             '11' '55' '99' 'dd'
+             '22' '66' 'aa' 'ee'
+             '33' '77' 'bb' 'ff'];
+
+Input_data = aes_debug_hex_to_bin_array(Input_hex);
+
+Key_AES_hex = ['00' '04' '08' '0c' '10' '14' '18' '1c'
+               '01' '05' '09' '0d' '11' '15' '19' '1d'
+               '02' '06' '0a' '0e' '12' '16' '1a' '1e'
+               '03' '07' '0b' '0f' '13' '17' '1b' '1f'];
+
+Key_AES = aes_256_debug_hex_to_bin_array(Key_AES_hex);
+
+%--------------------------KeyExpension------------------------------------
+RoundKey = KeyExpension_256( Key_AES );
+
+%--------------------------AddRoundKey-------------------------------------
+RoundData = AddRoundKey( Input_data, Key_AES(1:4,1:32) );
+
+%--------------------------------------------------------------------------
+%-------------------1-14 ROUNDS---------------------------------------------
+%--------------------------------------------------------------------------
+for Round = 0:13
+%---------------------------SubBytes---------------------------------------
+for X = 1:4
+    for Y = 1:4
+        byte = RoundData(X, (8*(Y-1))+1 : 8*Y);
+        RoundData(X, (8*(Y-1))+1 : 8*Y) = SubBytes(byte);
+    end
+end
+
+%--------------------------ShiftRows---------------------------------------
+RoundData = ShiftRows( RoundData );
+
+%--------------------------MixColumns--------------------------------------
+if (Round < 13)
+for i = 1:4
+    
+    RoundData_colums = [RoundData(1,(8*(i-1))+1 : 8*i) RoundData(2,(8*(i-1))+1 : 8*i) RoundData(3,(8*(i-1))+1 : 8*i) RoundData(4,(8*(i-1))+1 : 8*i)];
+    
+    Data = MixColumns(RoundData_colums);
+    
+    for m = 1:4  
+        RoundData_m(m, (8*(i-1))+1 : 8*i) = Data((8*(m-1))+1 : 8*m);
+    end
+        
+end
+RoundData = RoundData_m;
+end
+
+%--------------------------AddRoundKey-------------------------------------
+Key_N_str = RoundKey((128*Round+128)+1 : 128*(Round+1)+128);
+
+Key_N = aes_array_to_matrix(Key_N_str);
+
+RoundData = AddRoundKey( RoundData, Key_N );
+
+end
+
+%--------------------------------------------------------------------------
+%----------------------------14 ROUND--------------------------------------
+%--------------------------------------------------------------------------
+
+%---------------------------SubBytes---------------------------------------
+for X = 1:4
+    for Y = 1:4
+        byte = RoundData(X, (8*(Y-1))+1 : 8*Y);
+        RoundData(X, (8*(Y-1))+1 : 8*Y) = SubBytes(byte);
+    end
+end
+
+% RoundData_hex = aes_array128_to_hex(RoundData);%debug
+%--------------------------ShiftRows---------------------------------------
+RoundData = ShiftRows( RoundData );
+
+% RoundData_hex = aes_array128_to_hex(RoundData);%debug
+%--------------------------AddRoundKey-------------------------------------
+Key_N_str = RoundKey((128*13+128)+1 : 128*(13+1)+128);
+
+Key_N = aes_array_to_matrix(Key_N_str);
+
+Encrypted_Data = AddRoundKey( RoundData, Key_N );
+
+Encrypted_Data_hex = aes_array128_to_hex(Encrypted_Data);%debug
+
+
+
+
+
+
+
+
+
+
