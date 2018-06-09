@@ -16,25 +16,6 @@ clear
 % 
 % Key_AES = aes_debug_hex_to_bin_array(Key_AES_hex);
 
-%----------Read input data-------------------------------------------------
-fdata_in = fopen('aes_input_data.dat', 'r');
-
-Input_data_length = fscanf(fdata_in, '%d', 1);
-
-n = 1;
-A = fscanf(fdata_in, '%c', 1);
-for i = 1 : Input_data_length
-    for j = 1:8
-        Input_data_str = fscanf(fdata_in, '%c', 1);
-        Input_data(n) = str2num(Input_data_str);
-        n = n + 1;
-    end
-    A = fscanf(fdata_in, '%c', 1);
-end
-Input_data = aes_array_to_matrix(Input_data);
-fclose(fdata_in);
-clear A
-
 %----------Read key--------------------------------------------------------
 fdata_key = fopen('aes_key.dat', 'r');
 
@@ -53,6 +34,28 @@ end
 Key_AES = aes_array_to_matrix(Key_AES);
 fclose(fdata_key);
 clear A
+
+%----------Read input data-------------------------------------------------
+fdata_in = fopen('aes_input_data.dat', 'r');
+
+Input_data_length = fscanf(fdata_in, '%d', 1);
+
+n = 1;
+A = fscanf(fdata_in, '%c', 1);
+for i = 1 : Input_data_length
+    for j = 1:8
+        Input_data_full_str = fscanf(fdata_in, '%c', 1);
+        Input_data_full(n) = str2num(Input_data_full_str);
+        n = n + 1;
+    end
+    A = fscanf(fdata_in, '%c', 1);
+end
+fclose(fdata_in);
+clear A
+
+for section = 0 : Input_data_length/16 - 1
+    
+Input_data = aes_array_to_matrix(Input_data_full(128*section + 1 : 128*(section + 1)));
 
 
 %--------------------------KeyExpension------------------------------------
@@ -114,27 +117,35 @@ Enc3 = [Encrypted_Data(1,25:32) Encrypted_Data(2,25:32) Encrypted_Data(3,25:32) 
 
 Encrypted_Data_m = [Enc0 Enc1 Enc2 Enc3];
 
+if (section == 0)
+    Encrypted_Data_full = Encrypted_Data_m;
+else
+    Encrypted_Data_full = [Encrypted_Data_full Encrypted_Data_m];
+end
+
+end
+
 %-----------Write data-----------------------------------------------------
 fdata_out = fopen('aes_output_data.dat', 'wb');
 fprintf(fdata_out, '%d\n', Input_data_length);
 for i = 1 : 8*Input_data_length
    switch (mod(i, 8))
     case 0
-        fprintf(fdata_out, '%d\n', Encrypted_Data_m(i - 7));
+        fprintf(fdata_out, '%d\n', Encrypted_Data_full(i - 7));
     case 1
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 8 )); 
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 8 )); 
     case 2
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 7 ));
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 7 ));
     case 3
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 6 ));
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 6 ));
     case 4
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 5 )); 
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 5 )); 
     case 5
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 4 ));
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 4 ));
     case 6
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 3 ));
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 3 ));
     case 7
-       fprintf(fdata_out, '%d', Encrypted_Data_m( (i - mod(i,8)) + 2 ));
+       fprintf(fdata_out, '%d', Encrypted_Data_full( (i - mod(i,8)) + 2 ));
     end 
 end
 
