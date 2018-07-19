@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_ram.v                                                                  *
+ *  File Name:     aes_128_sbox_tb.v                                                              *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -14,44 +14,41 @@
 
 `timescale 1ns / 1ps
 
-module aes_128_ram_tb;
-
+module aes_128_sbox_tb;
 
  /*************************************************************************************
  *            PARAMETERS                                                             *
  *************************************************************************************/
 parameter clk_dly = 20;
-parameter rst_dly = 50;
 
 /*************************************************************************************
  *            INTERNAL WIRES & REGS                                                  *
  *************************************************************************************/
 //inputs
 reg		clk;
-reg		kill;
-reg	[127:0]	input_data;
-reg		input_en;
-reg	[127:0]	key_round;
+reg		en;
+reg	[7:0]	addra;
+reg	[7:0]	addrb;
 
 //outputs
-wire	[127:0]	output_data;
-wire		output_en;
-
-//Matlab data vectors
-
-//Matlab files descriptors
+wire	[7:0]	doa;
+wire	[7:0]	dob;
 
  /*************************************************************************************
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
-aes_128_ram aes_128_ram(	.clk(clk),
-				.kill(kill),
-				.input_data(input_data),
-				.input_en(input_en),
-				.key_round(key_round),
-				.output_data(output_data),
-				.output_en(output_en));
-
+aes_128_sbox aes_128_sbox(		.clka(clk),
+					.clkb(clk),
+					.ena(en),
+					.enb(en),
+					.wea(1'b0),
+					.web(1'b0),
+					.addra(addra),
+					.addrb(addrb),
+					.dia(),
+					.dib(),
+					.doa(doa),
+					.dob(dob));
 
 /*************************************************************************************
  *            INITIAL                                                                *
@@ -60,7 +57,6 @@ aes_128_ram aes_128_ram(	.clk(clk),
 initial
 begin
 	clk = 1'b0;
-	kill = 1'b0;
 end
 
 always
@@ -69,32 +65,20 @@ always
 //initial full
 initial
 begin
-	aes_rst;
-	aes_ini;
-	wait_n_clocks(2);
-	aes_set_data_en;
-
+	wait_n_clocks(3);
+	aes_128_sbox_ini;
+	aes_128_sbox_addr;
 end
 
 /*************************************************************************************
  *            TASKS                                                                  *
  *************************************************************************************/
-//reset signal
-task aes_rst;
-begin
-	kill <= 1'b1;
-	#rst_dly kill <= 1'b0;
-end
-endtask
-
-/**************************************************************************************************/
 //initialization all signal
-task aes_ini;
+task aes_128_sbox_ini;
 begin
-	input_en = 1'b0;
-	input_data = 128'b0;
-	key_round = 128'hff00ff00ff00ff00ff00ff00ff00ff00;
-	
+	en = 1'b0;
+	addra = 8'b0;
+	addrb = 8'b0;
 end
 endtask
 
@@ -112,20 +96,21 @@ end
 endtask
 
 /**************************************************************************************************/
-//set input enable and data
-task aes_set_data_en;
+//addr
+task aes_128_sbox_addr;
 integer i;
 begin
-	@(posedge clk)
-	input_en <= 1'b1;
-	input_data <= 127'b1;
 	@(posedge clk);
-	input_en <= 1'b0;
-	input_data <= 127'b0;
-	
-	$display("Input data was set\n");
+	en <= 1'b1;
+	for (i = 0; i < 256; i = i + 1)
+	begin
+		addra <= addra + 1;
+		addrb <= addrb + 1;
+		@(posedge clk);
+	end
 end
 endtask
+
 /**************************************************************************************************/
 
 endmodule
