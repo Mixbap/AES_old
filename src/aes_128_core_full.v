@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_top.v                                                                  *
+ *  File Name:     aes_128_core_full.v                                                            *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -14,17 +14,16 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_top (
+module aes_128_core_full (
 	/* inputs */
 	input			clk,
 	input			kill,
 	input		[127:0]	in_data,
 	input			in_en,
-	input			en_wr,
-	input		[4:0]	addr_wr,
-	input		[63:0]	key_round_wr,
-	
+	input		[127:0]	key_round,
+
 	/* outputs */
+	output			key_ready,
 	output		[127:0]	out_data,
 	output			out_en
 	);
@@ -32,29 +31,42 @@ module aes_128_top (
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-wire		[127:0]	key_round;
-wire			key_ready;
+wire			en_mixcol;
+wire			start;
+wire			idle;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-aes_128_core_full aes_128_core_full (	.clk(clk),
+//aes_128_core
+aes_128_core aes_128_core (		.clk(clk),
 					.kill(kill),
+					.en_mixcol(en_mixcol),
+					.start(start),
 					.in_data(in_data),
-					.in_en(in_en),
 					.key_round(key_round),
+					.out_data(out_data));
+
+/**************************************************************************************************/
+//aes_128_control
+aes_128_control aes_128_control(	.clk(clk),
+					.kill(kill),
+					.in_en(in_en),
+					.en_mixcol(en_mixcol),
 					.key_ready(key_ready),
-					.out_data(out_data),
+					.idle(idle),
 					.out_en(out_en));
 
 /**************************************************************************************************/
-aes_128_keyram aes_128_keyram (		.clk(clk),
-					.kill(kill),
-					.en_wr(en_wr),
-					.key_round_wr(key_round_wr),
-					.addr_wr(addr_wr),
-					.key_ready(key_ready),
-					.key_round_rd(key_round));
-					
+//start
+assign start = (idle) ? 1'b0 : in_en;
+
 /**************************************************************************************************/
 endmodule
+
+
+
+
+
+
+

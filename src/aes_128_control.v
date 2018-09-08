@@ -43,7 +43,7 @@ always @(posedge clk)
 		round_count <= 5'b0;
 	else if (in_en)
 		round_count <= 5'b0;
-	else
+	else if (in_en_r)
 		round_count <= round_count + 5'b1;
 
 /**************************************************************************************************/
