@@ -12,30 +12,20 @@
  *  Verilog code                                                                                  *
  **************************************************************************************************/
 
+(* keep_hierarchy = "yes" *)
+
 module aes_128_core (
-	clk,
-	kill,
-	en_mixcol,
-	start,
-	rounds_end,
-	in_data,
-	key_round,
+	/* inputs */
+	input			clk,
+	input			kill,
+	input			en_mixcol,
+	input			start,
+	input		[127:0]	in_data,
+	input		[127:0]	key_round,
 
-	out_data
+	/* outputs */
+	output		[127:0]	out_data
 	);
-
-/**************************************************************************************************
-*        I/O PORTS
- **************************************************************************************************/
-input			clk;
-input			kill;
-input			en_mixcol;
-input			start;
-input			rounds_end;
-input	[127:0]		in_data;
-input	[127:0]		key_round;
-
-output	[127:0]		out_data;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
@@ -51,7 +41,6 @@ reg	[127:0]		round_data;
 //SubBytes and ShiftRows
 aes_128_subbytes aes_128_subbytes (	.clk(clk),
 					.kill(kill),
-					.en(1'b1),
 					.in_data(round_data),
 					.out_data(subbytes_out));
 
@@ -75,7 +64,7 @@ always @(posedge clk)
 
 /**************************************************************************************************/
 //Output data
-assign out_data = (rounds_end) ? round_data : 128'b0;
+assign out_data =  round_data;
 
 /**************************************************************************************************/
 

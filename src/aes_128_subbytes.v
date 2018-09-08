@@ -12,24 +12,17 @@
  *  Verilog code                                                                                  *
  **************************************************************************************************/
 
+(* keep_hierarchy = "yes" *)
+
 module aes_128_subbytes (
-	clk,
-	kill,
-	en,
-	in_data,
+	/* inputs */
+	input			clk,
+	input			kill,
+	input		[127:0]	in_data,
 
-	out_data
+	/* outputs */
+	output		[127:0]	out_data
 	);
-
-/**************************************************************************************************
-*        I/O PORTS
- **************************************************************************************************/
-input			clk;
-input			kill;
-input			en;
-input	[127:0]		in_data;
-
-output	[127:0]		out_data;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
@@ -37,8 +30,6 @@ output	[127:0]		out_data;
 aes_128_sbox aes_128_sbox_0 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[7:0]),
@@ -52,8 +43,6 @@ aes_128_sbox aes_128_sbox_0 (	.clka(clk),
 aes_128_sbox aes_128_sbox_1 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[87:80]),
@@ -67,8 +56,6 @@ aes_128_sbox aes_128_sbox_1 (	.clka(clk),
 aes_128_sbox aes_128_sbox_2 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[39:32]),
@@ -82,8 +69,6 @@ aes_128_sbox aes_128_sbox_2 (	.clka(clk),
 aes_128_sbox aes_128_sbox_3 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[119:112]),
@@ -97,8 +82,6 @@ aes_128_sbox aes_128_sbox_3 (	.clka(clk),
 aes_128_sbox aes_128_sbox_4 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[71:64]),
@@ -112,8 +95,6 @@ aes_128_sbox aes_128_sbox_4 (	.clka(clk),
 aes_128_sbox aes_128_sbox_5 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[23:16]),
@@ -127,8 +108,6 @@ aes_128_sbox aes_128_sbox_5 (	.clka(clk),
 aes_128_sbox aes_128_sbox_6 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[103:96]),
@@ -142,8 +121,6 @@ aes_128_sbox aes_128_sbox_6 (	.clka(clk),
 aes_128_sbox aes_128_sbox_7 (	.clka(clk),
 				.clkb(clk),
 				.kill(kill),
-				.ena(en),
-				.enb(en),
 				.wea(1'b0),
 				.web(1'b0),
 				.addra(in_data[55:48]),

@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_control.v                                                              *
+ *  File Name:     aes_128_key_ram_mem.v                                                          *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -14,93 +14,57 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_control (
+module aes_128_keyram_mem (
 	/* inputs */
 	input			clk,
 	input			kill,
-	input			in_en,
+	input			en_wr,
+	input		[4:0]	addr,
+	input		[63:0]	key_round_wr,
 
 	/* outputs */
-	output	reg		en_mixcol = 1'b0,
-	output			key_ready,
-	output	reg		idle = 1'b0,
-	output	reg		out_en
+	output	reg	[63:0]	ram_out
 	);
+
+/**************************************************************************************************
+*        PARAMETERS
+ **************************************************************************************************/
+parameter LENGTH_RAM = 22;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-reg		in_en_r = 1'b0;
-reg		key_ready_r = 1'b0;
-reg	[4:0]	round_count;
+reg	[63:0]		ram [LENGTH_RAM-1:0];
 
+/**************************************************************************************************
+ *            INITIAL                                                                             *
+ **************************************************************************************************/
+initial
+begin
+	ram[0] <= 64'h0706050403020100;		ram[1] <= 64'h0f0e0d0c0b0a0908;		ram[2] <= 64'hfa72afd2fd74aad6;		ram[3] <= 64'hfe76abd6f178a6da;
+	ram[4] <= 64'hf1bd3d640bcf92b6;		ram[5] <= 64'hfeb3306800c59bbe;		ram[6] <= 64'hbfc9c2d24e74ffb6;		ram[7] <= 64'h41bf6904bf0c596c;
+	ram[8] <= 64'h033e3595bcf7f747;		ram[9] <= 64'hfd8d05fdbc326cf9;		ram[10] <= 64'heb9d9fa9e8a3aa3c;	ram[11] <= 64'haa22f6ad57aff350;
+	ram[12] <= 64'h9692a6f77d0f395e;	ram[13] <= 64'h6b1fa30ac13d55a7;	ram[14] <= 64'h8ce25fe31a70f914;	ram[15] <= 64'h26c0a94e4ddf0a44;
+	ram[16] <= 64'hb9651ca435874347;	ram[17] <= 64'hd27abfaef4ba16e0;	ram[18] <= 64'h685785f0d1329954;	ram[19] <= 64'h4e972cbe9ced9310;
+	ram[20] <= 64'h174a94e37f1d1113;	ram[21] <= 64'hc5302b4d8ba707f3;		
+end
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//round_count
+//ram
 always @(posedge clk)
+begin
 	if (kill)
-		round_count <= 5'b0;
-	else if (in_en)
-		round_count <= 5'b0;
-	else
-		round_count <= round_count + 5'b1;
-
-/**************************************************************************************************/
-//en_mixcol
-always @(posedge clk)
-	if (kill)
-		en_mixcol <= 1'b0;
-	else if (in_en)
-		en_mixcol <= 1'b0;
-	else if (round_count == 5'd27)
-		en_mixcol <= 1'b1;
+		ram_out <= 64'b0;
 	else 
-		en_mixcol <= 1'b0;
+	begin
+		if (en_wr)
+			ram[addr] <= key_round_wr;
+		ram_out <= ram[addr];
+	end
+end
 
 /**************************************************************************************************/
-//key_ready_r
-always @(posedge clk)
-	if (kill)
-		key_ready_r <= 1'b0;
-	else if ((round_count == 5'd1 | 		round_count == 5'd4 | 		round_count == 5'd7 | 		round_count == 5'd10 |
-	    	  round_count == 5'd13 | 		round_count == 5'd16 | 		round_count == 5'd19 | 		round_count == 5'd22 |
-	    	  round_count == 5'd25 | 		round_count == 5'd28) & in_en_r)
-		key_ready_r <= 1'b1;
-	else
-		key_ready_r <= 1'b0;
+endmodule
 
-assign key_ready = in_en | key_ready_r;
 
-/**************************************************************************************************/
-//out_en
-always @(posedge clk)
-	if (kill)
-		out_en <= 1'b0;
-	else if (round_count == 5'd29)
-		out_en <= 1'b1;
-	else
-		out_en <= 1'b0;
-
-/**************************************************************************************************/
-//in_en_r
-always @(posedge clk)
-	if (kill)
-		in_en_r <= 1'b0;
-	else if (in_en)
-		in_en_r <= 1'b1;
-	else if (out_en)
-		in_en_r <= 1'b0;
-
-/**************************************************************************************************/
-//idle
-always @(posedge clk)
-	if (kill)
-		idle <= 1'b0;
-	else if (in_en)
-		idle <= 1'b1;
-	else if (out_en)
-		idle <= 1'b0;
-
-/**************************************************************************************************/
-endmodule;

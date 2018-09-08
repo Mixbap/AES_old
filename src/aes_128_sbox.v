@@ -12,37 +12,29 @@
  *  Verilog code                                                                                  *
  **************************************************************************************************/
 
-module aes_128_sbox (
-	clka,
-	clkb,
-	kill,
-	ena,
-	enb,
-	wea,
-	web,
-	addra,
-	addrb,
-	dia,
-	dib,
+(* keep_hierarchy = "yes" *)
 
-	doa,
-	dob,
+module aes_128_sbox (
+	/* inputs */
+	input			clka,
+	input			clkb,
+	input			kill,
+	input			wea,
+	input			web,
+	input		[7:0]	addra,
+	input		[7:0]	addrb,
+	input		[7:0]	dia,
+	input		[7:0]	dib,
+
+	/* outputs */
+	output 	reg	[7:0]	doa,
+	output	reg	[7:0]	dob
 	);
 
 /**************************************************************************************************
 *        PARAMETERS
  **************************************************************************************************/
 parameter LENGTH_RAM = 256;
-
-/**************************************************************************************************
-*        I/O PORTS
- **************************************************************************************************/
-input			clka, clkb, ena, enb, wea, web;
-input			kill;
-input		[7:0]	addra, addrb;
-input		[7:0]	dia,dib;
-
-output	reg	[7:0]	doa,dob;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
@@ -226,7 +218,7 @@ always @(posedge clka)
 begin
 	if (kill)
 		doa <= 8'b0;
-	else if (ena)
+	else 
 		begin
 			if (wea)
 				ram[addra] <= dia;
@@ -239,7 +231,7 @@ always @(posedge clkb)
 begin
 	if (kill)
 		dob <= 8'b0;
-	else if (enb)
+	else
 		begin
 			if (web)
 				ram[addrb] <= dib;

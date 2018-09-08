@@ -12,36 +12,26 @@
  *  Verilog code                                                                                  *
  **************************************************************************************************/
 
+(* keep_hierarchy = "yes" *)
+
 module aes_128_top (
-	clk,
-	kill,
-	in_data,
-	in_en,
-	key_round,
+	/* inputs */
+	input			clk,
+	input			kill,
+	input		[127:0]	in_data,
+	input			in_en,
+	input		[127:0]	key_round,
 
-	key_ready,
-	out_data,
-	out_en
+	/* outputs */
+	output			key_ready,
+	output		[127:0]	out_data,
+	output			out_en
 	);
-
-/**************************************************************************************************
-*        I/O PORTS
- **************************************************************************************************/
-input			clk;
-input			kill;
-input	[127:0]		in_data;
-input			in_en;
-input	[127:0]		key_round;
-
-output			key_ready;
-output	[127:0]		out_data;
-output			out_en;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
 wire			en_mixcol;
-wire			rounds_end;
 wire			start;
 wire			idle;
 
@@ -53,7 +43,6 @@ aes_128_core aes_128_core (		.clk(clk),
 					.kill(kill),
 					.en_mixcol(en_mixcol),
 					.start(start),
-					.rounds_end(rounds_end),
 					.in_data(in_data),
 					.key_round(key_round),
 					.out_data(out_data));
@@ -64,7 +53,6 @@ aes_128_control aes_128_control(	.clk(clk),
 					.kill(kill),
 					.in_en(in_en),
 					.en_mixcol(en_mixcol),
-					.rounds_end(rounds_end),
 					.key_ready(key_ready),
 					.idle(idle),
 					.out_en(out_en));

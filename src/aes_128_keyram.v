@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_top.v                                                                  *
+ *  File Name:     aes_128_key_ram.v                                                              *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -11,122 +11,47 @@
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
+
+(* keep_hierarchy = "yes" *)
+
 module aes_128_keyram (
-	clk,
-	kill,
-	en_wr,
-	key_round_wr,
-	addr_wr,
-	key_ready,
+	/* inputs */
+	input			clk,
+	input			kill,
+	input			en_wr,
+	input		[63:0]	key_round_wr,
+	input		[4:0]	addr_wr,
+	input			key_ready,
 	
-	key_round_rd
+	/* outputs */
+	output		[127:0]	key_round_rd
 	);
-
-/**************************************************************************************************
-*        PARAMETERS
- **************************************************************************************************/
-parameter LENGTH_RAM = 22;
-
-/**************************************************************************************************
-*        I/O PORTS
- **************************************************************************************************/
-input			clk;
-input			kill;
-input			en_wr;
-input	[63:0]		key_round_wr;
-input	[4:0]		addr_wr;
-input			key_ready;
-
-output	[127:0]		key_round_rd;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-reg	[63:0]		ram [LENGTH_RAM-1:0];
-reg	[4:0]		addr_rd;
-reg			key_ready_r;
-reg	[63:0]		ram_out;
-reg	[63:0]		key_round_buf;
-reg			flag_addr;
+wire		[63:0]	ram_out;
+wire		[4:0]	addr;
 
-wire	[4:0]		addr;
-
-/**************************************************************************************************
- *            INITIAL                                                                             *
- **************************************************************************************************/
-initial
-begin
-	ram[0] <= 64'h0706050403020100;		ram[1] <= 64'h0f0e0d0c0b0a0908;		ram[2] <= 64'hfa72afd2fd74aad6;		ram[3] <= 64'hfe76abd6f178a6da;
-	ram[4] <= 64'hf1bd3d640bcf92b6;		ram[5] <= 64'hfeb3306800c59bbe;		ram[6] <= 64'hbfc9c2d24e74ffb6;		ram[7] <= 64'h41bf6904bf0c596c;
-	ram[8] <= 64'h033e3595bcf7f747;		ram[9] <= 64'hfd8d05fdbc326cf9;		ram[10] <= 64'heb9d9fa9e8a3aa3c;	ram[11] <= 64'haa22f6ad57aff350;
-	ram[12] <= 64'h9692a6f77d0f395e;	ram[13] <= 64'h6b1fa30ac13d55a7;	ram[14] <= 64'h8ce25fe31a70f914;	ram[15] <= 64'h26c0a94e4ddf0a44;
-	ram[16] <= 64'hb9651ca435874347;	ram[17] <= 64'hd27abfaef4ba16e0;	ram[18] <= 64'h685785f0d1329954;	ram[19] <= 64'h4e972cbe9ced9310;
-	ram[20] <= 64'h174a94e37f1d1113;	ram[21] <= 64'hc5302b4d8ba707f3;		
-end
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//ram
-always @(posedge clk)
-begin
-	if (kill)
-		ram_out <= 64'b0;
-	else 
-	begin
-		if (en_wr)
-			ram[addr] <= key_round_wr;
-		ram_out <= ram[addr];
-	end
-end
+aes_128_keyram_mem aes_128_keyram_mem(		.clk(clk),
+						.kill(kill),
+						.en_wr(en_wr),
+						.addr(addr),
+						.key_round_wr(key_round_wr),
+						.ram_out(ram_out));
 
-/**************************************************************************************************/
-//key_round_buf
-always @(posedge clk)
-	if (kill)
-		key_round_buf <= 64'b0;
-	else if (flag_addr)
-		key_round_buf <= ram_out;
-
-/**************************************************************************************************/
-//addr
-assign addr = (en_wr) ? addr_wr : addr_rd;
-
-/**************************************************************************************************/
-//key_round_rd
-assign key_round_rd[63:0] = (~flag_addr) ? key_round_buf : key_round_rd[63:0];
-assign key_round_rd[127:64] =  ram_out; 
-
-/**************************************************************************************************/
-//flag_addr
-always @(posedge clk)
-	if (kill)
-		flag_addr <= 1'b0;
-	else if (key_ready | key_ready_r | (addr_rd < 5'b1))
-		flag_addr <= 1'b1;
-	else 
-		flag_addr <= 1'b0;
-
-/**************************************************************************************************/
-//addr_rd
-always @(posedge clk)
-	if (kill)
-		addr_rd <= 5'b0;
-	else if (en_wr)
-		addr_rd <= 5'b0;
-	else if ((addr_rd == LENGTH_RAM-1) & key_ready)
-		addr_rd <= 5'b0;
-	else if (key_ready | key_ready_r | (addr_rd < 5'b1))
-		addr_rd <= addr_rd + 5'b1;
-	
-/**************************************************************************************************/
-//key_ready_r
-always @(posedge clk)
-	if (kill)
-		key_ready_r <= 1'b0;
-	else if (key_ready)
-		key_ready_r <= 1'b1;
-	else
-		key_ready_r <= 1'b0;
+/**************************************************************************************************/					
+aes_128_keyram_control aes_128_keyram_control(	.clk(clk),
+						.kill(kill),
+						.en_wr(en_wr),
+						.addr_wr(addr_wr),
+						.key_ready(key_ready),
+						.ram_out(ram_out),
+						.key_round_rd(key_round_rd),
+						.addr(addr));
 
 /**************************************************************************************************/
 endmodule
