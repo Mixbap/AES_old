@@ -1,13 +1,13 @@
 Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2017.4 (win64) Build 2086221 Fri Dec 15 20:55:39 MST 2017
-| Date         : Wed Aug 22 10:14:26 2018
+| Date         : Sun Sep  9 10:16:38 2018
 | Host         : VVV running 64-bit Service Pack 1  (build 7601)
-| Command      : report_utilization -file aes_128_keyram_utilization_synth.rpt -pb aes_128_keyram_utilization_synth.pb
-| Design       : aes_128_keyram
+| Command      : report_utilization -file aes_128_core_full_3val_utilization_synth.rpt -pb aes_128_core_full_3val_utilization_synth.pb
+| Design       : aes_128_core_full_3val
 | Device       : xcku035ffva1156-1LV
 | Design State : Synthesized
------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 
 Utilization Design Information
 
@@ -31,12 +31,12 @@ Table of Contents
 +-------------------------+------+-------+-----------+-------+
 |        Site Type        | Used | Fixed | Available | Util% |
 +-------------------------+------+-------+-----------+-------+
-| CLB LUTs*               |   10 |     0 |    203128 | <0.01 |
-|   LUT as Logic          |   10 |     0 |    203128 | <0.01 |
+| CLB LUTs*               |  341 |     0 |    203128 |  0.17 |
+|   LUT as Logic          |  341 |     0 |    203128 |  0.17 |
 |   LUT as Memory         |    0 |     0 |    112800 |  0.00 |
-| CLB Registers           |  135 |     0 |    406256 |  0.03 |
-|   Register as Flip Flop |   71 |     0 |    406256 |  0.02 |
-|   Register as Latch     |   64 |     0 |    406256 |  0.02 |
+| CLB Registers           |  268 |     0 |    406256 |  0.07 |
+|   Register as Flip Flop |  268 |     0 |    406256 |  0.07 |
+|   Register as Latch     |    0 |     0 |    406256 |  0.00 |
 | CARRY8                  |    0 |     0 |     30300 |  0.00 |
 | F7 Muxes                |    0 |     0 |    121200 |  0.00 |
 | F8 Muxes                |    0 |     0 |     60600 |  0.00 |
@@ -58,9 +58,9 @@ Table of Contents
 | 0     |            _ |       Reset |            - |
 | 0     |          Yes |           - |            - |
 | 0     |          Yes |           - |          Set |
-| 64    |          Yes |           - |        Reset |
+| 0     |          Yes |           - |        Reset |
 | 0     |          Yes |         Set |            - |
-| 71    |          Yes |       Reset |            - |
+| 268   |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -70,10 +70,10 @@ Table of Contents
 +-------------------+------+-------+-----------+-------+
 |     Site Type     | Used | Fixed | Available | Util% |
 +-------------------+------+-------+-----------+-------+
-| Block RAM Tile    |    1 |     0 |       540 |  0.19 |
+| Block RAM Tile    |    4 |     0 |       540 |  0.74 |
 |   RAMB36/FIFO*    |    0 |     0 |       540 |  0.00 |
-|   RAMB18          |    2 |     0 |      1080 |  0.19 |
-|     RAMB18E2 only |    2 |       |           |       |
+|   RAMB18          |    8 |     0 |      1080 |  0.74 |
+|     RAMB18E2 only |    8 |       |           |       |
 +-------------------+------+-------+-----------+-------+
 * Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E2 or one FIFO18E2. However, if a FIFO18E2 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E2
 
@@ -94,7 +94,7 @@ Table of Contents
 +------------+------+-------+-----------+-------+
 |  Site Type | Used | Fixed | Available | Util% |
 +------------+------+-------+-----------+-------+
-| Bonded IOB |  201 |     0 |       520 | 38.65 |
+| Bonded IOB |  389 |     0 |       520 | 74.81 |
 +------------+------+-------+-----------+-------+
 
 
@@ -104,8 +104,8 @@ Table of Contents
 +----------------------+------+-------+-----------+-------+
 |       Site Type      | Used | Fixed | Available | Util% |
 +----------------------+------+-------+-----------+-------+
-| GLOBAL CLOCK BUFFERs |    2 |     0 |       480 |  0.42 |
-|   BUFGCE             |    2 |     0 |       240 |  0.83 |
+| GLOBAL CLOCK BUFFERs |    1 |     0 |       480 |  0.21 |
+|   BUFGCE             |    1 |     0 |       240 |  0.42 |
 |   BUFGCE_DIV         |    0 |     0 |        40 |  0.00 |
 |   BUFG_GT            |    0 |     0 |       120 |  0.00 |
 |   BUFGCTRL*          |    0 |     0 |        80 |  0.00 |
@@ -153,19 +153,18 @@ Table of Contents
 +----------+------+---------------------+
 | Ref Name | Used | Functional Category |
 +----------+------+---------------------+
-| OBUF     |  128 |                 I/O |
-| INBUF    |   73 |                 I/O |
-| IBUFCTRL |   73 |              Others |
-| FDRE     |   71 |            Register |
-| LDCE     |   64 |            Register |
-| LUT3     |    8 |                 CLB |
-| RAMB18E2 |    2 |           Block Ram |
+| FDRE     |  268 |            Register |
+| INBUF    |  259 |                 I/O |
+| IBUFCTRL |  259 |              Others |
+| LUT4     |  169 |                 CLB |
+| OBUF     |  130 |                 I/O |
+| LUT6     |  130 |                 CLB |
+| LUT2     |   89 |                 CLB |
+| RAMB18E2 |    8 |           Block Ram |
 | LUT5     |    2 |                 CLB |
-| LUT4     |    2 |                 CLB |
-| LUT2     |    2 |                 CLB |
-| BUFGCE   |    2 |               Clock |
-| LUT6     |    1 |                 CLB |
-| LUT1     |    1 |                 CLB |
+| LUT1     |    2 |                 CLB |
+| LUT3     |    1 |                 CLB |
+| BUFGCE   |    1 |               Clock |
 +----------+------+---------------------+
 
 

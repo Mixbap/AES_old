@@ -1,0 +1,21 @@
+transcript on
+vlib work
+
+vlog -v +incdir+./ ../src/aes_128_core_full_3val.v
+vlog -v +incdir+./ ../tb/aes_128_core_full_3val_tb.v
+
+
+vsim -t 1ns aes_128_core_full_3val_tb
+
+add wave /aes_128_core_full_3val_tb/clk
+add wave /aes_128_core_full_3val_tb/kill
+add wave -radix hexadecimal /aes_128_core_full_3val_tb/in_data
+add wave /aes_128_core_full_3val_tb/in_en
+add wave -radix hexadecimal /aes_128_core_full_3val_tb/key_round
+add wave /aes_128_core_full_3val_tb/key_ready
+add wave -radix hexadecimal /aes_128_core_full_3val_tb/out_data
+add wave -radix hexadecimal /aes_128_core_full_3val_tb/out_en
+
+configure wave -timelineunits us
+run -all
+wave zoom full

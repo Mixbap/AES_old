@@ -1,6 +1,6 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_control.v                                                              *
+ *  File Name:     aes_128_control_3val.v                                                         *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
@@ -14,7 +14,7 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_control (
+module aes_128_control_3val (
 	/* inputs */
 	input			clk,
 	input			kill,
@@ -31,7 +31,9 @@ module aes_128_control (
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
 reg		in_en_r = 1'b0;
+reg		in_en_tr = 1'b0;
 reg		key_ready_r = 1'b0;
+reg	[1:0]	count_in_en;
 reg	[4:0]	round_count;
 
 /**************************************************************************************************
@@ -43,7 +45,7 @@ always @(posedge clk)
 		round_count <= 5'b0;
 	else if (in_en)
 		round_count <= 5'b0;
-	else if (in_en_r)
+	else if (in_en_r | out_en)
 		round_count <= round_count + 5'b1;
 
 /**************************************************************************************************/
@@ -53,10 +55,10 @@ always @(posedge clk)
 		en_mixcol <= 1'b0;
 	else if (in_en)
 		en_mixcol <= 1'b0;
-	else if (round_count == 5'd27)
+	else if (round_count == 5'd25)
 		en_mixcol <= 1'b1;
-	else 
-		en_mixcol <= 1'b0;
+	//else 
+		//en_mixcol <= 1'b0;
 
 /**************************************************************************************************/
 //key_ready_r
@@ -70,14 +72,34 @@ always @(posedge clk)
 	else
 		key_ready_r <= 1'b0;
 
-assign key_ready = in_en | key_ready_r;
+assign key_ready = in_en_tr | key_ready_r;
+
+/**************************************************************************************************/
+//count_in_en
+always @(posedge clk)
+	if (kill)
+		count_in_en <= 2'b0;
+	else if (in_en_tr)
+		count_in_en <= 2'b0;
+	else if (in_en)
+		count_in_en <= count_in_en + 2'b1;
+
+/**************************************************************************************************/
+//in_en_tr
+always @(posedge clk)
+	if (kill)
+		in_en_tr <= 1'b0;
+	else if (count_in_en == 2'b1)
+		in_en_tr <= 1'b1;
+	else 
+		in_en_tr <= 1'b0;
 
 /**************************************************************************************************/
 //out_en
 always @(posedge clk)
 	if (kill)
 		out_en <= 1'b0;
-	else if (round_count == 5'd29)
+	else if ((round_count == 5'd27) | (round_count == 5'd28) | (round_count == 5'd29))
 		out_en <= 1'b1;
 	else
 		out_en <= 1'b0;
@@ -94,7 +116,7 @@ always @(posedge clk)
 
 /**************************************************************************************************/
 //idle
-assign idle = in_en_r;
+assign idle = in_en_r | out_en;
 
 /**************************************************************************************************/
-endmodule;
+endmodule
