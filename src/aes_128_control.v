@@ -23,8 +23,9 @@ module aes_128_control (
 	/* outputs */
 	output	reg		en_mixcol = 1'b0,
 	output			key_ready,
-	output			idle,
-	output	reg		out_en = 1'b0
+	output	reg		idle = 1'b0,
+	output	reg		out_en = 1'b0,
+	output	reg		in_en_collision_irq_pulse = 1'b0
 	);
 
 /**************************************************************************************************
@@ -33,6 +34,7 @@ module aes_128_control (
 reg		in_en_r = 1'b0;
 reg		key_ready_r = 1'b0;
 reg	[4:0]	round_count;
+reg		in_en_collision_irq = 1'b0;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
@@ -94,7 +96,33 @@ always @(posedge clk)
 
 /**************************************************************************************************/
 //idle
-assign idle = in_en_r;
+always @(posedge clk)
+	if (kill)
+		idle <= 1'b0;
+	else if (in_en)
+		idle <= 1'b1;
+	else if (out_en)
+		idle <= 1'b0;
+
+/**************************************************************************************************/
+//in_en_collision_irq
+always @(posedge clk)
+	if (kill)
+		in_en_collision_irq <= 1'b0;
+	else if (in_en & idle)
+		in_en_collision_irq <= 1'b1;
+	else if (in_en)
+		in_en_collision_irq <= 1'b0;
+
+/**************************************************************************************************/
+//in_en_collision_irq_pulse
+always @(posedge clk)
+	if (kill)
+		in_en_collision_irq_pulse <= 1'b0;
+	else if (in_en_collision_irq)
+		in_en_collision_irq_pulse <= ~in_en_collision_irq_pulse;
+	else 
+		in_en_collision_irq_pulse <= 1'b0;
 
 /**************************************************************************************************/
 endmodule;

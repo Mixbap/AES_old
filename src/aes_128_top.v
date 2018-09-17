@@ -21,12 +21,12 @@ module aes_128_top (
 	input		[127:0]	in_data,
 	input			in_en,
 	input			en_wr,
-	input		[4:0]	addr_wr,
 	input		[63:0]	key_round_wr,
 	
 	/* outputs */
 	output		[127:0]	out_data,
-	output			out_en
+	output			out_en,
+	output			in_en_collision_irq_pulse
 	);
 
 /**************************************************************************************************
@@ -45,14 +45,14 @@ aes_128_core_full aes_128_core_full (	.clk(clk),
 					.key_round(key_round),
 					.key_ready(key_ready),
 					.out_data(out_data),
-					.out_en(out_en));
+					.out_en(out_en),
+					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 /**************************************************************************************************/
 aes_128_keyram aes_128_keyram (		.clk(clk),
 					.kill(kill),
 					.en_wr(en_wr),
 					.key_round_wr(key_round_wr),
-					.addr_wr(addr_wr),
 					.key_ready(key_ready),
 					.key_round_rd(key_round));
 					

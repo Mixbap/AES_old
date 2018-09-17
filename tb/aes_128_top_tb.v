@@ -30,27 +30,26 @@ reg			clk;
 reg			kill;
 reg	[127:0]		in_data;
 reg			in_en;
-reg	[127:0]		key_round;
+reg	[63:0]		key_round_wr;
+reg			en_wr;
 
 //outputs
-wire			key_ready;
+/*
 wire			out_en;
 wire	[127:0]		out_data;
-
-//Key_round
-reg	[127:0]		key_round_full[9:0];
 
  /*************************************************************************************
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
-aes_128_top aes_128_top (	.clk(clk),
-				.kill(kill),
-				.in_data(in_data),
-				.in_en(in_en),
-				.key_round(key_round),
-				.key_ready(key_ready),
-				.out_data(out_data),
-				.out_en(out_en));
+aes_128_top aes_128_top (		.clk(clk),
+					.kill(kill),
+					.in_data(in_data),
+					.in_en(in_en),
+					.en_wr(en_wr),
+					.key_round_wr(key_round_wr),
+					.out_data(out_data),
+					.out_en(out_en),
+					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 /*************************************************************************************
  *            INITIAL                                                                *
@@ -71,11 +70,14 @@ begin
 	aes_128_rst;
 	aes_128_ini;
 	wait_n_clocks(4);
-	fork
-		aes_128_set_data;
-		aes_128_set_key;
-	join
-	wait_n_clocks(10);
+	aes_128_set_data;
+	wait_n_clocks(45);
+	aes_128_set_data;
+	wait_n_clocks(45);
+	aes_128_write_key;
+	wait_n_clocks(4);
+	aes_128_set_data;
+	wait_n_clocks(50);
 	$stop;
 end
 
@@ -96,18 +98,8 @@ task aes_128_ini;
 begin
 	in_en = 1'b0;
 	in_data = 128'b0;
-	key_round = 128'h0f0e0d0c0b0a09080706050403020100;
-
-	key_round_full[0] = 128'hfe76abd6f178a6dafa72afd2fd74aad6;
-	key_round_full[1] = 128'hfeb3306800c59bbef1bd3d640bcf92b6;
-	key_round_full[2] = 128'h41bf6904bf0c596cbfc9c2d24e74ffb6;
-	key_round_full[3] = 128'hfd8d05fdbc326cf9033e3595bcf7f747;
-	key_round_full[4] = 128'haa22f6ad57aff350eb9d9fa9e8a3aa3c;
-	key_round_full[5] = 128'h6b1fa30ac13d55a79692a6f77d0f395e;
-	key_round_full[6] = 128'h26c0a94e4ddf0a448ce25fe31a70f914;
-	key_round_full[7] = 128'hd27abfaef4ba16e0b9651ca435874347;
-	key_round_full[8] = 128'h4e972cbe9ced9310685785f0d1329954;
-	key_round_full[9] = 128'hc5302b4d8ba707f3174a94e37f1d1113;
+	en_wr = 1'b0;
+	key_round_wr = 128'b0;
 end
 endtask
 
@@ -134,33 +126,33 @@ begin
 	@(posedge clk);
 	in_en <= 1'b0;
 	in_data <= 128'b0;
+/*
+//double in_en
+	@(posedge clk);
+	in_en <= 1'b1;
+	@(posedge clk);
+	in_en <= 1'b0;
+*/
 end
 endtask
+
 /**************************************************************************************************/
-//set key_round
-task aes_128_set_key;
-integer i;
+//write key
+task aes_128_write_key;
 begin
-	i = 0;
-	while (!out_en)
-	begin
-		@(posedge clk);
-		if (in_en)
-			i = 0;
-		if (key_ready)
-			begin
-				key_round <= key_round_full[i];
-				i = i + 1;
-			end
-	end
-
+	@(posedge clk);
+	en_wr <= 1'b1;
+	key_round_wr <= 128'hff;
+	@(posedge clk);
+	en_wr <= 1'b1;
+	key_round_wr <= 128'haa;
+	@(posedge clk);
+	en_wr <= 1'b0;
+	key_round_wr <= 128'b0;
 end
 endtask
-
 
 /**************************************************************************************************/
 
 endmodule
-
-
 

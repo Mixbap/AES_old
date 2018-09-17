@@ -143,6 +143,13 @@ begin
 	@(posedge clk);
 	in_en <= 1'b0;
 	in_data <= 128'b0;
+/*
+//double in_en
+	@(posedge clk);
+	in_en <= 1'b1;
+	@(posedge clk);
+	in_en <= 1'b0;
+*/
 end
 endtask
 /**************************************************************************************************/

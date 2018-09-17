@@ -20,7 +20,6 @@ module aes_128_keyram (
 	input			kill,
 	input			en_wr,
 	input		[63:0]	key_round_wr,
-	input		[4:0]	addr_wr,
 	input			key_ready,
 	
 	/* outputs */
@@ -47,7 +46,6 @@ aes_128_keyram_mem aes_128_keyram_mem(		.clk(clk),
 aes_128_keyram_control aes_128_keyram_control(	.clk(clk),
 						.kill(kill),
 						.en_wr(en_wr),
-						.addr_wr(addr_wr),
 						.key_ready(key_ready),
 						.ram_out(ram_out),
 						.key_round_rd(key_round_rd),

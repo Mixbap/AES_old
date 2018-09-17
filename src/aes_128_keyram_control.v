@@ -19,7 +19,6 @@ module aes_128_keyram_control (
 	input			clk,
 	input			kill,
 	input			en_wr,
-	input		[4:0]	addr_wr,
 	input			key_ready,
 	input		[63:0]	ram_out,
 	
@@ -31,12 +30,14 @@ module aes_128_keyram_control (
 /**************************************************************************************************
 *        PARAMETERS
  **************************************************************************************************/
-parameter LENGTH_RAM = 22;
+parameter LENGTH_RAM = 36;
+parameter LENGTH_KEY_SET = 22;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
 reg	[4:0]		addr_rd;
+reg	[4:0]		addr_wr;
 reg			key_ready_r = 1'b0;
 reg	[63:0]		key_round_buf;
 reg			flag_addr = 1'b0;
@@ -77,11 +78,21 @@ always @(posedge clk)
 		addr_rd <= 5'b0;
 	else if (en_wr)
 		addr_rd <= 5'b0;
-	else if ((addr_rd == LENGTH_RAM-1) & key_ready)
+	else if ((addr_rd == LENGTH_KEY_SET-1) & key_ready)
 		addr_rd <= 5'b0;
 	else if (key_ready | key_ready_r | (addr_rd < 5'b1))
 		addr_rd <= addr_rd + 5'b1;
-	
+
+/**************************************************************************************************/
+//addr_wr	
+always @(posedge clk)
+	if (kill)
+		addr_wr <= 5'b0;
+	else if (key_ready)
+		addr_wr <= 5'b0;
+	else if (en_wr)
+		addr_wr <= addr_wr + 5'b1;
+
 /**************************************************************************************************/
 //key_ready_r
 always @(posedge clk)

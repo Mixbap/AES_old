@@ -25,7 +25,8 @@ module aes_128_core_full (
 	/* outputs */
 	output			key_ready,
 	output		[127:0]	out_data,
-	output			out_en
+	output			out_en,
+	output			in_en_collision_irq_pulse
 	);
 
 /**************************************************************************************************
@@ -55,7 +56,8 @@ aes_128_control aes_128_control(	.clk(clk),
 					.en_mixcol(en_mixcol),
 					.key_ready(key_ready),
 					.idle(idle),
-					.out_en(out_en));
+					.out_en(out_en),
+					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 /**************************************************************************************************/
 //start
