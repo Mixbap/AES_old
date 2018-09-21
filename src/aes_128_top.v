@@ -38,6 +38,7 @@ wire			key_ready;
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
+/*
 aes_128_core_full aes_128_core_full (	.clk(clk),
 					.kill(kill),
 					.in_data(in_data),
@@ -47,14 +48,35 @@ aes_128_core_full aes_128_core_full (	.clk(clk),
 					.out_data(out_data),
 					.out_en(out_en),
 					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
+*/
+
+aes_128_core_full_4cyc aes_128_core_full_4cyc (	.clk(clk),
+						.kill(kill),
+						.in_data(in_data),
+						.in_en(in_en),
+						.key_round(key_round),
+						.key_ready(key_ready),
+						.out_data(out_data),
+						.out_en(out_en),
+						.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 /**************************************************************************************************/
+/*
 aes_128_keyram aes_128_keyram (		.clk(clk),
 					.kill(kill),
 					.en_wr(en_wr),
 					.key_round_wr(key_round_wr),
 					.key_ready(key_ready),
 					.key_round_rd(key_round));
-					
+*/
+aes_128_keyram_2key aes_128_keyram_2key (	.clk(clk),
+						.kill(kill),
+						.en_wr(en_wr),
+						.key_round_wr(key_round_wr),
+						.key_ready(key_ready),
+						.key_round_rd(key_round),
+						.wr_idle());
+			
 /**************************************************************************************************/
 endmodule
+

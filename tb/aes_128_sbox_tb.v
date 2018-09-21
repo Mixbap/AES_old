@@ -26,7 +26,6 @@ parameter clk_dly = 20;
  *************************************************************************************/
 //inputs
 reg		clk;
-reg		en;
 reg	[7:0]	addra;
 reg	[7:0]	addrb;
 
@@ -39,8 +38,6 @@ wire	[7:0]	dob;
  *************************************************************************************/
 aes_128_sbox aes_128_sbox(		.clka(clk),
 					.clkb(clk),
-					.ena(en),
-					.enb(en),
 					.wea(1'b0),
 					.web(1'b0),
 					.addra(addra),
@@ -76,7 +73,6 @@ end
 //initialization all signal
 task aes_128_sbox_ini;
 begin
-	en = 1'b0;
 	addra = 8'b0;
 	addrb = 8'b0;
 end
@@ -101,7 +97,6 @@ task aes_128_sbox_addr;
 integer i;
 begin
 	@(posedge clk);
-	en <= 1'b1;
 	for (i = 0; i < 256; i = i + 1)
 	begin
 		addra <= addra + 1;

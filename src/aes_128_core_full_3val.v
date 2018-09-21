@@ -33,6 +33,7 @@ module aes_128_core_full_3val (
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
 wire			en_mixcol;
+wire			start;
 wire			idle;
 
 /**************************************************************************************************
@@ -42,7 +43,7 @@ wire			idle;
 aes_128_core aes_128_core (			.clk(clk),
 						.kill(kill),
 						.en_mixcol(en_mixcol),
-						.start(in_en),
+						.start(start),
 						.in_data(in_data),
 						.key_round(key_round),
 						.out_data(out_data));
@@ -52,6 +53,7 @@ aes_128_core aes_128_core (			.clk(clk),
 aes_128_control_3val aes_128_control_3val(	.clk(clk),
 						.kill(kill),
 						.in_en(in_en),
+						.start(start),
 						.en_mixcol(en_mixcol),
 						.key_ready(key_ready),
 						.idle(idle),

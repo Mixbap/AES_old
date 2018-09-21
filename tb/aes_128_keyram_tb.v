@@ -30,7 +30,6 @@ reg		clk;
 reg		kill;
 reg		en_wr;
 reg	[63:0]	key_round_wr;
-reg	[4:0]	addr_wr;
 reg		key_ready;
 
 //outputs
@@ -43,7 +42,6 @@ aes_128_keyram aes_128_keyram (	.clk(clk),
 				.kill(kill),
 				.en_wr(en_wr),
 				.key_round_wr(key_round_wr),
-				.addr_wr(addr_wr),
 				.key_ready(key_ready),
 				.key_round_rd(key_round_rd));
 
@@ -91,7 +89,6 @@ endtask
 task aes_128_keyram_ini;
 begin
 	en_wr = 1'b0;
-	addr_wr = 5'b0;
 	key_round_wr = 64'b0;
 	key_ready = 1'b0;
 end
@@ -134,19 +131,15 @@ task aes_128_keyram_write_key;
 begin
 	@(posedge clk);
 	en_wr <= 1'b1;
-	addr_wr <= 5'd2;
 	key_round_wr <= 64'hffffffffffffffff;
 	@(posedge clk);
 	en_wr <= 1'b0;
-	addr_wr <= 5'b0;
 	key_round_wr <= 64'h0;
 	@(posedge clk);
 	en_wr <= 1'b1;
-	addr_wr <= 5'd3;
 	key_round_wr <= 64'haaaaaaaaaaaaaaaa;
 	@(posedge clk);
 	en_wr <= 1'b0;
-	addr_wr <= 5'b0;
 	key_round_wr <= 64'h0;
 end
 endtask

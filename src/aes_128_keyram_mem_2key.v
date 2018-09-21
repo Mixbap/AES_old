@@ -1,13 +1,12 @@
-
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_keyram_3val.v                                                          *
+ *  File Name:     aes_128_keyram_mem_3key.v                                                      *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                                        *
+ *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -15,51 +14,50 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_keyram_3val (
+module aes_128_keyram_mem_2key (
 	/* inputs */
 	input			clk,
 	input			kill,
-	input			key_ready,
 	input			en_wr,
-	input		[127:0]	key_round_wr,
+	input		[5:0]	addr_wr,
+	input		[5:0]	addr_rd,
+	input		[63:0]	key_round_wr,
 
 	/* outputs */
-	output	reg	[127:0]	key_round_rd
+	output	reg	[63:0]	ram_out
 	);
 
 /**************************************************************************************************
 *        PARAMETERS
  **************************************************************************************************/
-parameter LENGTH_RAM = 16;
-parameter LENGTH_KEY_SET = 11;
+parameter LENGTH_RAM = 64;
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-reg	[127:0]		ram [LENGTH_RAM-1:0];
-reg	[3:0]		addr_0 = 4'b0;
-reg	[3:0]		addr_1 = 4'b1;
-reg	[3:0]		addr_wr = 4'b0;
-
-wire	[3:0]		addr;
-wire	[3:0]		addr_rd;
+reg	[63:0]		ram [LENGTH_RAM-1:0];
 
 /**************************************************************************************************
  *            INITIAL                                                                             *
  **************************************************************************************************/
 initial
 begin
-	ram[0] <= 128'h0f0e0d0c0b0a09080706050403020100;
-	ram[1] <= 128'hfe76abd6f178a6dafa72afd2fd74aad6;
-	ram[2] <= 128'hfeb3306800c59bbef1bd3d640bcf92b6;
-	ram[3] <= 128'h41bf6904bf0c596cbfc9c2d24e74ffb6;
-	ram[4] <= 128'hfd8d05fdbc326cf9033e3595bcf7f747;
-	ram[5] <= 128'haa22f6ad57aff350eb9d9fa9e8a3aa3c;
-	ram[6] <= 128'h6b1fa30ac13d55a79692a6f77d0f395e;
-	ram[7] <= 128'h26c0a94e4ddf0a448ce25fe31a70f914;
-	ram[8] <= 128'hd27abfaef4ba16e0b9651ca435874347;
-	ram[9] <= 128'h4e972cbe9ced9310685785f0d1329954;
-	ram[10] <= 128'hc5302b4d8ba707f3174a94e37f1d1113;	
+	//ram buffer 0
+	ram[0] <= 64'h0706050403020100;		ram[1] <= 64'h0f0e0d0c0b0a0908;		ram[2] <= 64'hfa72afd2fd74aad6;		ram[3] <= 64'hfe76abd6f178a6da;
+	ram[4] <= 64'hf1bd3d640bcf92b6;		ram[5] <= 64'hfeb3306800c59bbe;		ram[6] <= 64'hbfc9c2d24e74ffb6;		ram[7] <= 64'h41bf6904bf0c596c;
+	ram[8] <= 64'h033e3595bcf7f747;		ram[9] <= 64'hfd8d05fdbc326cf9;		ram[10] <= 64'heb9d9fa9e8a3aa3c;	ram[11] <= 64'haa22f6ad57aff350;
+	ram[12] <= 64'h9692a6f77d0f395e;	ram[13] <= 64'h6b1fa30ac13d55a7;	ram[14] <= 64'h8ce25fe31a70f914;	ram[15] <= 64'h26c0a94e4ddf0a44;
+	ram[16] <= 64'hb9651ca435874347;	ram[17] <= 64'hd27abfaef4ba16e0;	ram[18] <= 64'h685785f0d1329954;	ram[19] <= 64'h4e972cbe9ced9310;
+	ram[20] <= 64'h174a94e37f1d1113;	ram[21] <= 64'hc5302b4d8ba707f3;		
+
+	//ram buffer 1
+	ram[22] <= 64'h0706050403020100;	ram[23] <= 64'h0f0e0d0c0b0a0908;	ram[24] <= 64'hfa72afd2fd74aad6;	ram[25] <= 64'hfe76abd6f178a6da;
+	ram[26] <= 64'hf1bd3d640bcf92b6;	ram[27] <= 64'hfeb3306800c59bbe;	ram[28] <= 64'hbfc9c2d24e74ffb6;	ram[29] <= 64'h41bf6904bf0c596c;
+	ram[30] <= 64'h033e3595bcf7f747;	ram[31] <= 64'hfd8d05fdbc326cf9;	ram[32] <= 64'heb9d9fa9e8a3aa3c;	ram[33] <= 64'haa22f6ad57aff350;
+	ram[34] <= 64'h9692a6f77d0f395e;	ram[35] <= 64'h6b1fa30ac13d55a7;	ram[36] <= 64'h8ce25fe31a70f914;	ram[37] <= 64'h26c0a94e4ddf0a44;
+	ram[38] <= 64'hb9651ca435874347;	ram[39] <= 64'hd27abfaef4ba16e0;	ram[40] <= 64'h685785f0d1329954;	ram[41] <= 64'h4e972cbe9ced9310;
+	ram[42] <= 64'h174a94e37f1d1113;	ram[43] <= 64'hc5302b4d8ba707f3;		
+
 end
 /**************************************************************************************************
  *      LOGIC                                                                                     *
@@ -68,54 +66,15 @@ end
 always @(posedge clk)
 begin
 	if (kill)
-		key_round_rd <= 128'b0;
+		ram_out <= 64'b0;
 	else 
 	begin
 		if (en_wr)
-			ram[addr] <= key_round_wr;
-		key_round_rd <= ram[addr];
+			ram[addr_wr] <= key_round_wr;
+		ram_out <= ram[addr_rd];
 	end
 end
 
 /**************************************************************************************************/
-//addr
-assign addr = (en_wr) ? addr_wr : addr_rd;
-
-/**************************************************************************************************/
-//addr_rd
-assign addr_rd = (key_ready) ? addr_1 : addr_0;
-
-/**************************************************************************************************/
-//addr_0
-always @(posedge clk)
-	if (kill)
-		addr_0 <= 4'b0;
-	else if ((addr_rd == LENGTH_KEY_SET) & key_ready)
-		addr_0 <= 4'b0;
-	else if (key_ready)
-		addr_0 <= addr_0 + 4'b1;
-
-/**************************************************************************************************/
-//addr_1
-always @(posedge clk)
-	if (kill)
-		addr_1 <= 4'b1;
-	else if ((addr_rd == LENGTH_KEY_SET) & key_ready)
-		addr_1 <= 4'b1;
-	else if (key_ready)
-		addr_1 <= addr_1 + 4'b1;
-
-/**************************************************************************************************/
-//addr_wr	
-always @(posedge clk)
-	if (kill)
-		addr_wr <= 5'b0;
-	else if (key_ready)
-		addr_wr <= 5'b0;
-	else if (en_wr)
-		addr_wr <= addr_wr + 5'b1;
-
-/**************************************************************************************************/
-
 endmodule
 

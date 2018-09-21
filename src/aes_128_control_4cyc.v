@@ -1,12 +1,12 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_control_3val.v                                                         *
+ *  File Name:     aes_128_control_4cyc.v                                                         *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                                        *
+ *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -14,7 +14,7 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_control_3val (
+module aes_128_control_4cyc (
 	/* inputs */
 	input			clk,
 	input			kill,
@@ -33,10 +33,8 @@ module aes_128_control_3val (
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
 reg		start_r = 1'b0;
-reg		start_tr = 1'b0;
 reg		key_ready_r = 1'b0;
-reg	[1:0]	count_in_en;
-reg	[4:0]	round_count;
+reg	[5:0]	round_count;
 reg		in_en_collision_irq = 1'b0;
 
 /**************************************************************************************************
@@ -49,11 +47,11 @@ assign start = (idle) ? 1'b0 : in_en;
 //round_count
 always @(posedge clk)
 	if (kill)
-		round_count <= 5'b0;
+		round_count <= 6'b0;
 	else if (start)
-		round_count <= 5'b0;
-	else if (start_r | out_en)
-		round_count <= round_count + 5'b1;
+		round_count <= 6'b0;
+	else if (start_r)
+		round_count <= round_count + 6'b1;
 
 /**************************************************************************************************/
 //en_mixcol
@@ -62,49 +60,31 @@ always @(posedge clk)
 		en_mixcol <= 1'b0;
 	else if (start)
 		en_mixcol <= 1'b0;
-	else if (round_count == 5'd25)
+	else if (round_count == 6'd37)
 		en_mixcol <= 1'b1;
+	else 
+		en_mixcol <= 1'b0;
 
 /**************************************************************************************************/
 //key_ready_r
 always @(posedge clk)
 	if (kill)
 		key_ready_r <= 1'b0;
-	else if ((round_count == 5'd1 | 		round_count == 5'd4 | 		round_count == 5'd7 | 		round_count == 5'd10 |
-	    	  round_count == 5'd13 | 		round_count == 5'd16 | 		round_count == 5'd19 | 		round_count == 5'd22 |
-	    	  round_count == 5'd25 | 		round_count == 5'd28) & start_r)
+	else if ((round_count == 6'd2 | 		round_count == 6'd6 | 		round_count == 6'd10 | 		round_count == 6'd14 |
+	    	  round_count == 6'd18 | 		round_count == 6'd22 | 		round_count == 6'd26 | 		round_count == 6'd30 |
+	    	  round_count == 6'd34 | 		round_count == 6'd38) & start_r)
 		key_ready_r <= 1'b1;
 	else
 		key_ready_r <= 1'b0;
 
-assign key_ready = start_tr | key_ready_r;
-
-/**************************************************************************************************/
-//count_in_en
-always @(posedge clk)
-	if (kill)
-		count_in_en <= 2'b0;
-	else if (start_tr)
-		count_in_en <= 2'b0;
-	else if (start)
-		count_in_en <= count_in_en + 2'b1;
-
-/**************************************************************************************************/
-//start_tr
-always @(posedge clk)
-	if (kill)
-		start_tr <= 1'b0;
-	else if (count_in_en == 2'b1)
-		start_tr <= 1'b1;
-	else 
-		start_tr <= 1'b0;
+assign key_ready = start | key_ready_r;
 
 /**************************************************************************************************/
 //out_en
 always @(posedge clk)
 	if (kill)
 		out_en <= 1'b0;
-	else if ((round_count == 5'd27) | (round_count == 5'd28) | (round_count == 5'd29))
+	else if (round_count == 6'd40)
 		out_en <= 1'b1;
 	else
 		out_en <= 1'b0;
@@ -124,11 +104,11 @@ always @(posedge clk)
 always @(posedge clk)
 	if (kill)
 		idle <= 1'b0;
-	else if (start_tr)
+	else if (start)
 		idle <= 1'b1;
-	else if (~(start_r | out_en))
+	else if (out_en)
 		idle <= 1'b0;
-	
+
 /**************************************************************************************************/
 //in_en_collision_irq
 always @(posedge clk)
@@ -150,4 +130,4 @@ always @(posedge clk)
 		in_en_collision_irq_pulse <= 1'b0;
 
 /**************************************************************************************************/
-endmodule
+endmodule;

@@ -1,12 +1,12 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_core_full.v                                                            *
+ *  File Name:     aes_128_core_4cyc.v                                                            *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                                        *
+ *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -14,56 +14,70 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_core_full (
+module aes_128_core_4cyc (
 	/* inputs */
 	input			clk,
 	input			kill,
+	input			en_mixcol,
+	input			start,
 	input		[127:0]	in_data,
-	input			in_en,
 	input		[127:0]	key_round,
 
 	/* outputs */
-	output			key_ready,
-	output		[127:0]	out_data,
-	output			out_en,
-	output			in_en_collision_irq_pulse
+	output		[127:0]	out_data
 	);
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-wire			en_mixcol;
-wire			start;
-wire			idle;
+wire	[127:0]		mixcol_out;
+wire	[127:0]		subbytes_out;
+
+reg	[127:0]		round_data;
+reg	[127:0]		round_data_buf;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//aes_128_core
-aes_128_core aes_128_core (		.clk(clk),
+//SubBytes and ShiftRows
+aes_128_subbytes aes_128_subbytes (	.clk(clk),
 					.kill(kill),
-					.en_mixcol(en_mixcol),
-					.start(start),
-					.in_data(in_data),
-					.key_round(key_round),
-					.out_data(out_data));
+					.in_data(round_data_buf),
+					.out_data(subbytes_out));
 
 /**************************************************************************************************/
-//aes_128_control
-aes_128_control aes_128_control(	.clk(clk),
+//MixColums
+aes_128_mixcol aes_128_mixcol (		.clk(clk),
 					.kill(kill),
-					.in_en(in_en),
-					.start(start),
-					.en_mixcol(en_mixcol),
-					.key_ready(key_ready),
-					.idle(idle),
-					.out_en(out_en),
-					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
-
+					.en(en_mixcol),
+					.in_data(subbytes_out),
+					.out_data(mixcol_out));
 
 /**************************************************************************************************/
+//AddRoundKey
+always @(posedge clk)
+	if (kill)
+		round_data <= 128'b0;
+	else if (start)
+		round_data <= in_data ^ key_round;
+	else
+		round_data <= mixcol_out ^ key_round;
+
+/**************************************************************************************************/
+//Buffer delay round_data
+always @(posedge clk)
+	if (kill)
+		round_data_buf <= 128'b0;
+	else 
+		round_data_buf <= round_data;
+
+/**************************************************************************************************/
+//Output data
+assign out_data =  round_data_buf;
+
+/**************************************************************************************************/
+
 endmodule
-
 
 
 

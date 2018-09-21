@@ -21,6 +21,7 @@ module aes_128_control (
 	input			in_en,
 
 	/* outputs */
+	output			start,
 	output	reg		en_mixcol = 1'b0,
 	output			key_ready,
 	output	reg		idle = 1'b0,
@@ -31,7 +32,7 @@ module aes_128_control (
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-reg		in_en_r = 1'b0;
+reg		start_r = 1'b0;
 reg		key_ready_r = 1'b0;
 reg	[4:0]	round_count;
 reg		in_en_collision_irq = 1'b0;
@@ -39,13 +40,17 @@ reg		in_en_collision_irq = 1'b0;
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
+//start
+assign start = (idle) ? 1'b0 : in_en;
+
+/**************************************************************************************************/
 //round_count
 always @(posedge clk)
 	if (kill)
 		round_count <= 5'b0;
-	else if (in_en)
+	else if (start)
 		round_count <= 5'b0;
-	else if (in_en_r)
+	else if (start_r)
 		round_count <= round_count + 5'b1;
 
 /**************************************************************************************************/
@@ -53,7 +58,7 @@ always @(posedge clk)
 always @(posedge clk)
 	if (kill)
 		en_mixcol <= 1'b0;
-	else if (in_en)
+	else if (start)
 		en_mixcol <= 1'b0;
 	else if (round_count == 5'd27)
 		en_mixcol <= 1'b1;
@@ -67,12 +72,12 @@ always @(posedge clk)
 		key_ready_r <= 1'b0;
 	else if ((round_count == 5'd1 | 		round_count == 5'd4 | 		round_count == 5'd7 | 		round_count == 5'd10 |
 	    	  round_count == 5'd13 | 		round_count == 5'd16 | 		round_count == 5'd19 | 		round_count == 5'd22 |
-	    	  round_count == 5'd25 | 		round_count == 5'd28) & in_en_r)
+	    	  round_count == 5'd25 | 		round_count == 5'd28) & start_r)
 		key_ready_r <= 1'b1;
 	else
 		key_ready_r <= 1'b0;
 
-assign key_ready = in_en | key_ready_r;
+assign key_ready = start | key_ready_r;
 
 /**************************************************************************************************/
 //out_en
@@ -85,21 +90,21 @@ always @(posedge clk)
 		out_en <= 1'b0;
 
 /**************************************************************************************************/
-//in_en_r
+//start_r
 always @(posedge clk)
 	if (kill)
-		in_en_r <= 1'b0;
-	else if (in_en)
-		in_en_r <= 1'b1;
+		start_r <= 1'b0;
+	else if (start)
+		start_r <= 1'b1;
 	else if (out_en)
-		in_en_r <= 1'b0;
+		start_r <= 1'b0;
 
 /**************************************************************************************************/
 //idle
 always @(posedge clk)
 	if (kill)
 		idle <= 1'b0;
-	else if (in_en)
+	else if (start)
 		idle <= 1'b1;
 	else if (out_en)
 		idle <= 1'b0;

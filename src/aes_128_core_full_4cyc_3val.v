@@ -1,12 +1,12 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_core_full.v                                                            *
+ *  File Name:     aes_128_core_full_4cyc_3val.v                                                  *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                                        *
+ *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -14,7 +14,7 @@
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_core_full (
+module aes_128_core_full_4cyc_3val (
 	/* inputs */
 	input			clk,
 	input			kill,
@@ -39,26 +39,26 @@ wire			idle;
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//aes_128_core
-aes_128_core aes_128_core (		.clk(clk),
-					.kill(kill),
-					.en_mixcol(en_mixcol),
-					.start(start),
-					.in_data(in_data),
-					.key_round(key_round),
-					.out_data(out_data));
+//aes_128_core_4cyc
+aes_128_core_4cyc aes_128_core_4cyc (			.clk(clk),
+							.kill(kill),
+							.en_mixcol(en_mixcol),
+							.start(start),
+							.in_data(in_data),
+							.key_round(key_round),
+							.out_data(out_data));
 
 /**************************************************************************************************/
-//aes_128_control
-aes_128_control aes_128_control(	.clk(clk),
-					.kill(kill),
-					.in_en(in_en),
-					.start(start),
-					.en_mixcol(en_mixcol),
-					.key_ready(key_ready),
-					.idle(idle),
-					.out_en(out_en),
-					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
+//aes_128_control_4cyc_3val
+aes_128_control_4cyc_3val aes_128_control_4cyc_3val(	.clk(clk),
+							.kill(kill),
+							.in_en(in_en),
+							.start(start),
+							.en_mixcol(en_mixcol),
+							.key_ready(key_ready),
+							.idle(idle),
+							.out_en(out_en),
+							.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 
 /**************************************************************************************************/

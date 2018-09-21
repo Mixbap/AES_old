@@ -39,7 +39,6 @@ wire	[127:0]	out_data;
  *************************************************************************************/
 aes_128_subbytes aes_128_subbytes (	.clk(clk),
 					.kill(kill),
-					.en(en),
 					.in_data(in_data),
 					.out_data(out_data));
 
@@ -80,7 +79,6 @@ endtask
 //initialization all signal
 task aes_128_subbytes_ini;
 begin
-	en = 0;
 	in_data = 128'b0;
 end
 endtask
@@ -103,10 +101,8 @@ endtask
 task aes_128_subbytes_set_data;
 begin
 	@(posedge clk);
-	en <= 1'b1;
 	in_data <= 128'hf0e0d0c0b0a090807060504030201000;
 	@(posedge clk);
-	en <= 1'b0;
 	in_data <= 128'b0;
 end
 endtask
