@@ -1,71 +1,74 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_core_full_3val.v                                                       *
+ *  File Name:     aes_128_keyram_2key_switch.v                                                   *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES 3 value - 128 bit input, 3 cycle round                                              *
+ *  Block KeyRam 2 key_set- 64 bit input write                                                    *
  *                                                                                                *
  **************************************************************************************************
  *    Synthesis in Vivado:                                                                        *
- *   			LUT:	344								  *
- *			FF:	271								  *
- *			BRAM:	4								  *
+ *   			LUT:	33								  *
+ *			FF:	88								  *
+ *			BRAM:	1								  *
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
 
 (* keep_hierarchy = "yes" *)
 
-module aes_128_core_full_3val (
+module aes_128_keyram_2key_switch (
 	/* inputs */
 	input			clk,
 	input			kill,
-	input		[127:0]	in_data,
-	input			in_en,
-	input		[127:0]	key_round,
-
+	input			en_wr,
+	input		[63:0]	key_round_wr,
+	input			key_ready,
+	input			switch_key,
+	
 	/* outputs */
-	output			key_ready,
-	output		[127:0]	out_data,
-	output			out_en,
-	output			in_en_collision_irq_pulse
+	output		[127:0]	key_round_rd,
+	output			key_idx
 	);
 
 /**************************************************************************************************
  *      LOCAL WIRES, REGS                                                                         *
  **************************************************************************************************/
-wire			en_mixcol;
-wire			start;
-wire			idle;
+wire		[63:0]	ram_out;
+wire		[5:0]	addr_wr;
+wire		[5:0]	addr_rd;
 
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//aes_128_core
-aes_128_core aes_128_core (			.clk(clk),
-						.kill(kill),
-						.en_mixcol(en_mixcol),
-						.start(start),
-						.in_data(in_data),
-						.key_round(key_round),
-						.out_data(out_data));
+aes_128_keyram_mem_2key aes_128_keyram_mem_2key(	.clk(clk),
+							.kill(kill),
+							.en_wr(en_wr),
+							.addr_wr(addr_wr),
+							.addr_rd(addr_rd),
+							.key_round_wr(key_round_wr),
+							.ram_out(ram_out));
 
-/**************************************************************************************************/
-//aes_128_control
-aes_128_control_3val aes_128_control_3val(	.clk(clk),
-						.kill(kill),
-						.in_en(in_en),
-						.start(start),
-						.en_mixcol(en_mixcol),
-						.key_ready(key_ready),
-						.idle(idle),
-						.out_en(out_en),
-						.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
-
+/**************************************************************************************************/					
+aes_128_keyram_control_2key_switch aes_128_keyram_control_2key_swith(	.clk(clk),
+									.kill(kill),
+									.en_wr(en_wr),
+									.key_ready(key_ready),
+									.ram_out(ram_out),
+									.switch_key(switch_key),
+									.key_round_rd(key_round_rd),
+									.addr_wr(addr_wr),
+									.addr_rd(addr_rd),
+									.key_idx(key_idx));
 
 /**************************************************************************************************/
 endmodule
+
+
+
+
+
+
 

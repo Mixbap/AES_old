@@ -14,7 +14,6 @@ add wave /aes_128_top_tb/in_en
 add wave -radix hexadecimal /aes_128_top_tb/aes_128_top/out_data
 add wave /aes_128_top_tb/out_en
 add wave /aes_128_top_tb/en_wr
-add wave -radix hexadecimal /aes_128_top_tb/addr_wr
 add wave -radix hexadecimal /aes_128_top_tb/key_round_wr
 
 configure wave -timelineunits us

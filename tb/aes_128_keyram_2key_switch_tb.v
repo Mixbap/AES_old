@@ -1,12 +1,13 @@
+
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_top_tb.v                                                               *
+ *  File Name:     aes_128_keyram_2key_switch_tb.v                                                *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Testbench block AES top                                                                       *
+ *  Testbench block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                              *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -14,7 +15,7 @@
 
 `timescale 1ns / 1ps
 
-module aes_128_top_tb;
+module aes_128_keyram_2key_switch_tb;
 
  /*************************************************************************************
  *            PARAMETERS                                                             *
@@ -26,33 +27,31 @@ parameter rst_dly = 50;
  *            INTERNAL WIRES & REGS                                                  *
  *************************************************************************************/
 //inputs
-reg			clk;
-reg			kill;
-reg	[127:0]		in_data;
-reg			in_en;
-reg	[63:0]		key_round_wr;
-reg			en_wr;
+reg		clk;
+reg		kill;
+reg		en_wr;
+reg	[63:0]	key_round_wr;
+reg		key_ready;
+reg		switch_key;
 
 //outputs
-wire			out_en;
-wire	[127:0]		out_data;
-wire			in_en_collision_irq_pulse;
+wire	[127:0]	key_round_rd;
+wire		key_idx;
 
-//Key round new
+//Key_round
 reg	[127:0]		key_round_new[43:0];
 
  /*************************************************************************************
  *            BLOCK INSTANCE                                                          *
  *************************************************************************************/
-aes_128_top aes_128_top (		.clk(clk),
-					.kill(kill),
-					.in_data(in_data),
-					.in_en(in_en),
-					.en_wr(en_wr),
-					.key_round_wr(key_round_wr),
-					.out_data(out_data),
-					.out_en(out_en),
-					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
+aes_128_keyram_2key_switch aes_128_keyram_2key_switch (	.clk(clk),
+							.kill(kill),
+							.en_wr(en_wr),
+							.key_round_wr(key_round_wr),
+							.key_ready(key_ready),
+							.switch_key(switch_key),
+							.key_round_rd(key_round_rd),
+							.key_idx(key_idx));
 
 /*************************************************************************************
  *            INITIAL                                                                *
@@ -70,47 +69,36 @@ always
 //initial full
 initial
 begin
-	aes_128_rst;
-	aes_128_ini;
-	//set data 
-	wait_n_clocks(4);
-	aes_128_set_data;
-	wait_n_clocks(45);
-	
-	//set 3 data 
-	wait_n_clocks(4);
-	aes_128_set_3_data;
-	wait_n_clocks(45);
+	aes_128_keyram_rst;
+	aes_128_keyram_ini;
 
-	//set 2 data 
-	aes_128_set_data;
-	//wait_n_clocks(1);
-	aes_128_set_data;
-	wait_n_clocks(45);
-
-	//set 3 data and double in_en
-	aes_128_set_3_data;
+	wait_n_clocks(3);
+	aes_128_keyram_set_ready(11);
 	wait_n_clocks(5);
-	aes_128_set_3_data;
-	wait_n_clocks(45);
+	aes_128_keyram_write(0,22,0);
+	wait_n_clocks(5);
 
-	//set data and write key
+	aes_128_set_switch_key;
 	fork
-		aes_128_set_data;
-		aes_128_keyram_write(0,22,3);
+		aes_128_keyram_set_ready(11);
+		aes_128_keyram_write(1,22,2);
 	join
-	wait_n_clocks(45);
-	aes_128_set_data;
-	wait_n_clocks(45);
+	wait_n_clocks(20);
 
-	//set data and write key
+	aes_128_set_switch_key;
 	fork
-		aes_128_set_data;
-		aes_128_keyram_write(1,22,3);
+		aes_128_keyram_set_ready(11);
+		aes_128_keyram_write(0,22,4);
 	join
-	wait_n_clocks(45);
-	aes_128_set_data;
-	wait_n_clocks(45);
+	wait_n_clocks(20);
+
+	aes_128_set_switch_key;
+	wait_n_clocks(1);
+	aes_128_keyram_set_ready(11);
+	wait_n_clocks(50);
+
+	
+
 	$stop;
 end
 
@@ -118,7 +106,7 @@ end
  *            TASKS                                                                  *
  *************************************************************************************/
 //reset signal
-task aes_128_rst;
+task aes_128_keyram_rst;
 begin
 	kill <= 1'b1;
 	#rst_dly kill <= 1'b0;
@@ -127,12 +115,12 @@ endtask
 
 /**************************************************************************************************/
 //initialization all signal
-task aes_128_ini;
+task aes_128_keyram_ini;
 begin
-	in_en = 1'b0;
-	in_data = 128'b0;
 	en_wr = 1'b0;
-	key_round_wr = 128'b0;
+	key_round_wr = 64'b0;
+	key_ready = 1'b0;
+	switch_key = 1'b0;
 
 	key_round_new[0] <= 64'h0;
 	key_round_new[1] <= 64'h1;
@@ -179,7 +167,6 @@ begin
 	key_round_new[41] <= 64'h4e972cbe9ced9310;
 	key_round_new[42] <= 64'h174a94e37f1d1113;
 	key_round_new[43] <= 64'hc5302b4d8ba707f3;
-
 end
 endtask
 
@@ -197,69 +184,39 @@ end
 endtask
 
 /**************************************************************************************************/
-//set data
-task aes_128_set_data;
-begin
-	@(posedge clk);
-	in_en <= 1'b1;
-	in_data <= 128'hffeeddccbbaa99887766554433221100;
-	@(posedge clk);
-	in_en <= 1'b0;
-	in_data <= 128'b0;
-/*
-//double in_en
-	@(posedge clk);
-	in_en <= 1'b1;
-	@(posedge clk);
-	in_en <= 1'b0;
-*/
-end
-endtask
-
-/**************************************************************************************************/
-//set 3 data
-task aes_128_set_3_data;
-begin
-	@(posedge clk);
-	in_en <= 1'b1;
-	in_data <= 128'hffeeddccbbaa99887766554433221100;
-	@(posedge clk);
-	in_en <= 1'b1;
-	in_data <= 128'hffeeddccbbaa99887766554433221101;
-	@(posedge clk);
-	in_en <= 1'b1;
-	in_data <= 128'hffeeddccbbaa99887766554433221102;
-	@(posedge clk);
-	in_en <= 1'b0;
-	in_data <= 128'b0;
-end
-endtask
-/**************************************************************************************************/
-//write key no full
-task aes_128_write_key_no_full;
-input integer DEL;
+//set ready
+task aes_128_keyram_set_ready;
+input integer N;
 integer n;
 begin
-	//delay
-	for (n = 0; n < DEL; n = n + 1)
+	for (n = 0; n < N; n = n + 1)
+	begin
 		@(posedge clk);
+		key_ready <= 1'b1;
+		@(posedge clk);
+		key_ready <= 1'b0;
+		@(posedge clk);
+		@(posedge clk);
+	end
+end
+endtask
 
+/**************************************************************************************************/
+//set switch key
+task aes_128_set_switch_key;
+begin
 	@(posedge clk);
-	en_wr <= 1'b1;
-	key_round_wr <= 128'hff;
+	switch_key <= 1'b1;
 	@(posedge clk);
-	en_wr <= 1'b1;
-	key_round_wr <= 128'haa;
-	@(posedge clk);
-	en_wr <= 1'b0;
-	key_round_wr <= 128'b0;
+	switch_key <= 1'b0;
+	
 end
 endtask
 
 /**************************************************************************************************/
 //write key
 task aes_128_keyram_write;
-input integer num_buf;
+input integer num_buff;
 input integer N;
 input integer DEL;
 integer i;
@@ -274,7 +231,7 @@ begin
 	begin
 		@(posedge clk);
 		en_wr <= 1'b1;
-		key_round_wr <= key_round_new[i + num_buf*22];
+		key_round_wr <= key_round_new[i + num_buff*22];
 	end
 	@(posedge clk);
 	en_wr <= 1'b0;
@@ -282,6 +239,4 @@ begin
 end
 endtask
 /**************************************************************************************************/
-
 endmodule
-

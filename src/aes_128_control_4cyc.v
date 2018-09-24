@@ -6,8 +6,13 @@
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
+ *  Block AES control - 128 bit input, 4 cycle round                                              *
  *                                                                                                *
+ **************************************************************************************************
+ *    Synthesis in Vivado:                                                                        *
+ *   			LUT:	12								  *
+ *			FF:	12								  *
+ *			BRAM:	0								  *
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
@@ -54,7 +59,7 @@ always @(posedge clk)
 		round_count <= round_count + 6'b1;
 
 /**************************************************************************************************/
-//en_mixcol
+//en_mixcol - signal the disconnecting Mixcolums
 always @(posedge clk)
 	if (kill)
 		en_mixcol <= 1'b0;
@@ -100,7 +105,7 @@ always @(posedge clk)
 		start_r <= 1'b0;
 
 /**************************************************************************************************/
-//idle
+//idle - high level  - status AES_CALC, low level  - status AES_IDLE
 always @(posedge clk)
 	if (kill)
 		idle <= 1'b0;
@@ -110,7 +115,7 @@ always @(posedge clk)
 		idle <= 1'b0;
 
 /**************************************************************************************************/
-//in_en_collision_irq
+//in_en_collision_irq - flag double in_en
 always @(posedge clk)
 	if (kill)
 		in_en_collision_irq <= 1'b0;
@@ -120,7 +125,7 @@ always @(posedge clk)
 		in_en_collision_irq <= 1'b0;
 
 /**************************************************************************************************/
-//in_en_collision_irq_pulse
+//in_en_collision_irq_pulse - debug signal
 always @(posedge clk)
 	if (kill)
 		in_en_collision_irq_pulse <= 1'b0;
@@ -130,4 +135,4 @@ always @(posedge clk)
 		in_en_collision_irq_pulse <= 1'b0;
 
 /**************************************************************************************************/
-endmodule;
+endmodule

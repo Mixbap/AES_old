@@ -1,12 +1,12 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_top.v                                                                   *
+ *  File Name:     aes_128_top.v                                                                  *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 3 cycle round                                        *
+ *  Block AES top					                                          *
  *                                                                                                *
  **************************************************************************************************
  *  Verilog code                                                                                  *
@@ -49,7 +49,7 @@ aes_128_core_full aes_128_core_full (	.clk(clk),
 					.out_en(out_en),
 					.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 */
-
+/*
 aes_128_core_full_4cyc aes_128_core_full_4cyc (	.clk(clk),
 						.kill(kill),
 						.in_data(in_data),
@@ -59,6 +59,17 @@ aes_128_core_full_4cyc aes_128_core_full_4cyc (	.clk(clk),
 						.out_data(out_data),
 						.out_en(out_en),
 						.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
+
+*/
+aes_128_core_full_4cyc_3val aes_128_core_full_4cyc_3val (	.clk(clk),
+								.kill(kill),
+								.in_data(in_data),
+								.in_en(in_en),
+								.key_round(key_round),
+								.key_ready(key_ready),
+								.out_data(out_data),
+								.out_en(out_en),
+								.in_en_collision_irq_pulse(in_en_collision_irq_pulse));
 
 /**************************************************************************************************/
 /*

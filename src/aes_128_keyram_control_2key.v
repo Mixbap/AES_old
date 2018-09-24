@@ -1,13 +1,18 @@
 /**************************************************************************************************
  *                                                                                                *
- *  File Name:     aes_128_key_ram_control_2key.v                                                 *
+ *  File Name:     aes_128_keyram_control_2key.v                                                  *
  *                                                                                                *
  **************************************************************************************************
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
+ *  Block KeyRam 2 key set- 64 bit input write                                                    *
  *                                                                                                *
+ **************************************************************************************************
+ *    Synthesis in Vivado:                                                                        *
+ *   			LUT:	35								  *
+ *			FF:	88								  *
+ *			BRAM:	0								  *
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
@@ -49,7 +54,7 @@ reg			read_status = 1'b0;
 /**************************************************************************************************
  *      LOGIC                                                                                     *
  **************************************************************************************************/
-//key_round_buf
+//key_round_buf - buffer for a half of a key
 always @(posedge clk)
 	if (kill)
 		key_round_buf <= 64'b0;
@@ -62,7 +67,7 @@ assign key_round_rd[63:0] = (~flag_addr) ? key_round_buf : key_round_rd[63:0];
 assign key_round_rd[127:64] =  ram_out; 
 
 /**************************************************************************************************/
-//flag_addr
+//flag_addr- flag of switching of the buffer
 always @(posedge clk)
 	if (kill)
 		flag_addr <= 1'b0;
@@ -88,7 +93,7 @@ always @(posedge clk)
 		addr_rd <= addr_rd + 6'b1;
 
 /**************************************************************************************************/
-//wr_idx
+//wr_idx - number ram buffer write
 always @(posedge clk)
 	if (kill)
 		wr_idx <= 1'b1;
@@ -146,7 +151,7 @@ always @(posedge clk)
 		read_status <= 1'b1;
 
 /**************************************************************************************************/
-//wr_idle
+//wr_idle - high level no write key
 always @(posedge clk)
 	if (kill)
 		wr_idle <= 1'b0;

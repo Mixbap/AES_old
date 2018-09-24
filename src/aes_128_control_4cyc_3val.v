@@ -6,8 +6,13 @@
  *                                                                                                *
  *  Description:                                                                                  *
  *                                                                                                *
- *  Block AES - 128 bit input, s-box 4 BRAM, 4 cycle round                                        *
+ *  Block AES control 3 value - 128 bit input, 4 cycle round                                      *
  *                                                                                                *
+ **************************************************************************************************
+ *    Synthesis in Vivado:                                                                        *
+ *   			LUT:	21								  *
+ *			FF:	19								  *
+ *			BRAM:	0								  *
  **************************************************************************************************
  *  Verilog code                                                                                  *
  **************************************************************************************************/
@@ -36,7 +41,8 @@ reg		start_r = 1'b0;
 reg		start_tr = 1'b0;
 reg		key_ready_start = 1'b0;
 reg		key_ready_r = 1'b0;
-reg	[1:0]	count_in_en;
+reg	[1:0]	delay_start_r = 2'b0;
+reg	[2:0]	flag_in_en = 3'b0;
 reg	[5:0]	round_count;
 reg		in_en_collision_irq = 1'b0;
 
@@ -44,7 +50,7 @@ reg		in_en_collision_irq = 1'b0;
  *      LOGIC                                                                                     *
  **************************************************************************************************/
 //start
-assign start = (idle) ? 1'b0 : in_en;
+assign start = (idle) ? 1'b0 : (in_en | start_r);
 
 /**************************************************************************************************/
 //round_count
@@ -53,11 +59,11 @@ always @(posedge clk)
 		round_count <= 6'b0;
 	else if (start)
 		round_count <= 6'b0;
-	else if (start_r | out_en)
+	else
 		round_count <= round_count + 6'b1;
 
 /**************************************************************************************************/
-//en_mixcol
+//en_mixcol - signal the disconnecting Mixcolums
 always @(posedge clk)
 	if (kill)
 		en_mixcol <= 1'b0;
@@ -81,21 +87,21 @@ always @(posedge clk)
 assign key_ready = key_ready_start | key_ready_r;
 
 /**************************************************************************************************/
-//count_in_en
+//delay_start_r
 always @(posedge clk)
 	if (kill)
-		count_in_en <= 2'b0;
+		delay_start_r <= 2'b0;
 	else if (start_tr)
-		count_in_en <= 2'b0;
+		delay_start_r <= 2'b0;
 	else if (start)
-		count_in_en <= count_in_en + 2'b1;
+		delay_start_r <= delay_start_r + 2'b1;
 
 /**************************************************************************************************/
 //start_tr
 always @(posedge clk)
 	if (kill)
 		start_tr <= 1'b0;
-	else if (count_in_en == 2'b1)
+	else if (delay_start_r == 2'b1)
 		start_tr <= 1'b1;
 	else 
 		start_tr <= 1'b0;
@@ -113,11 +119,23 @@ always @(posedge clk)
 		key_ready_start <= 1'b0;
 
 /**************************************************************************************************/
+//flag_in_en
+always @(posedge clk)
+	if (kill)
+		flag_in_en <= 3'b0;
+	else if ((~start_r) & (~start_tr) & in_en & start)
+		flag_in_en <= 3'b1;
+	else if (start_r & (~start_tr) & in_en & start)
+		flag_in_en <= flag_in_en + 3'b10;
+	else if (start_r & start_tr & in_en & start)
+		flag_in_en <= flag_in_en + 3'b100;
+
+/**************************************************************************************************/
 //out_en
 always @(posedge clk)
 	if (kill)
 		out_en <= 1'b0;
-	else if ((round_count == 6'd38) | (round_count == 6'd39) | (round_count == 6'd40))
+	else if ((round_count == 6'd38) | ((round_count == 6'd39) & ((flag_in_en >> 1) & 1)) | ((round_count == 6'd40) & ((flag_in_en >> 2) & 1)))
 		out_en <= 1'b1;
 	else
 		out_en <= 1'b0;
@@ -133,7 +151,7 @@ always @(posedge clk)
 		start_r <= 1'b0;
 
 /**************************************************************************************************/
-//idle
+//idle - high level  - status AES_CALC, low level  - status AES_IDLE
 always @(posedge clk)
 	if (kill)
 		idle <= 1'b0;
@@ -143,7 +161,7 @@ always @(posedge clk)
 		idle <= 1'b0;
 	
 /**************************************************************************************************/
-//in_en_collision_irq
+//in_en_collision_irq - flag double in_en
 always @(posedge clk)
 	if (kill)
 		in_en_collision_irq <= 1'b0;
@@ -153,7 +171,7 @@ always @(posedge clk)
 		in_en_collision_irq <= 1'b0;
 
 /**************************************************************************************************/
-//in_en_collision_irq_pulse
+//in_en_collision_irq_pulse - debug signal
 always @(posedge clk)
 	if (kill)
 		in_en_collision_irq_pulse <= 1'b0;
