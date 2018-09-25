@@ -71,7 +71,7 @@ assign key_round_rd[127:64] =  ram_out;
 always @(posedge clk)
 	if (kill)
 		flag_addr <= 1'b0;
-	else if (key_ready | key_ready_r | (addr_rd < 6'b1))
+	else if (key_ready | key_ready_r | (addr_rd == 6'b0) | (addr_rd == LENGTH_KEY_SET))
 		flag_addr <= 1'b1;
 	else 
 		flag_addr <= 1'b0;
@@ -81,6 +81,11 @@ always @(posedge clk)
 always @(posedge clk)
 	if (kill)
 		addr_rd <= 6'b0;
+
+	else if ((addr_rd == 6'b1) & switch_key)
+		addr_rd <= LENGTH_KEY_SET;
+	else if ((addr_rd == LENGTH_KEY_SET+1) & switch_key)
+		addr_rd <= 6'b0;
 	else if ((addr_rd == (2 * LENGTH_KEY_SET)-1) & key_ready & key_idx) 	//addr_rd = (22-44); key_idx = 1
 		addr_rd <= LENGTH_KEY_SET;
 	else if ((addr_rd == LENGTH_KEY_SET-1) & key_ready & (~key_idx)) 	//addr_rd = (0-22); key_idx = 0 
@@ -89,6 +94,7 @@ always @(posedge clk)
 		addr_rd <= LENGTH_KEY_SET;
 	else if ((addr_rd == (2 * LENGTH_KEY_SET)-1) & key_ready & (~key_idx)) 	//addr_rd = (22-44); key_idx = 0
 		addr_rd <= 6'b0;
+
 	else if (key_ready | key_ready_r | (addr_rd == 6'b0) | (addr_rd == LENGTH_KEY_SET))
 		addr_rd <= addr_rd + 6'b1;
 
@@ -106,6 +112,11 @@ always @(posedge clk)
 //addr_wr	
 always @(posedge clk)
 	if (kill)
+		addr_wr <= LENGTH_KEY_SET;
+
+	else if ((addr_wr == LENGTH_KEY_SET) & switch_key)
+		addr_wr <= 6'b0;
+	else if ((addr_wr == 6'b0) & switch_key)
 		addr_wr <= LENGTH_KEY_SET;
 	else if ((addr_wr == (2 * LENGTH_KEY_SET)-1) & key_idx)
 		addr_wr <= 6'b0;

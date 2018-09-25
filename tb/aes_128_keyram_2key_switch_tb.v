@@ -78,21 +78,25 @@ begin
 	aes_128_keyram_write(0,22,0);
 	wait_n_clocks(5);
 
-	aes_128_set_switch_key;
+	aes_128_set_switch_key(3);
+	wait_n_clocks(3);
 	fork
 		aes_128_keyram_set_ready(11);
 		aes_128_keyram_write(1,22,2);
 	join
 	wait_n_clocks(20);
 
-	aes_128_set_switch_key;
+
 	fork
 		aes_128_keyram_set_ready(11);
+		aes_128_set_switch_key(5);
 		aes_128_keyram_write(0,22,4);
 	join
 	wait_n_clocks(20);
+	aes_128_keyram_set_ready(11);
+	wait_n_clocks(20);
 
-	aes_128_set_switch_key;
+	aes_128_set_switch_key(3);
 	wait_n_clocks(1);
 	aes_128_keyram_set_ready(11);
 	wait_n_clocks(50);
@@ -204,7 +208,13 @@ endtask
 /**************************************************************************************************/
 //set switch key
 task aes_128_set_switch_key;
+input integer DEL;
+integer n;
 begin
+	//delay
+	for (n = 0; n < DEL; n = n + 1)
+		@(posedge clk);
+	
 	@(posedge clk);
 	switch_key <= 1'b1;
 	@(posedge clk);
