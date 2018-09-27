@@ -56,6 +56,7 @@ end
 fclose(fdata_in);
 clear A
 
+%-----Encryption data------------------------------------------------------
 for section = 0 : Input_data_length/16 - 1
     
 Input_data = aes_array_to_matrix(Input_data_full(128*section + 1 : 128*(section + 1)));

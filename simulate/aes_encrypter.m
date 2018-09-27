@@ -17,45 +17,105 @@ clear
 % Key_AES = aes_debug_hex_to_bin_array(Key_AES_hex);
 
 %----------Read key--------------------------------------------------------
-fdata_key = fopen('aes_key.dat', 'r');
+% fdata_key = fopen('aes_key.dat', 'r');
+% 
+% Key_AES_length = fscanf(fdata_key, '%d', 1);
+% 
+% n = 1;
+% A = fscanf(fdata_key, '%c', 1);
+% for i = 1 : Key_AES_length
+%     for j = 1:8
+%         Key_AES_str = fscanf(fdata_key, '%c', 1);
+%         Key_AES(n) = str2num(Key_AES_str);
+%         n = n + 1;
+%     end
+%     A = fscanf(fdata_key, '%c', 1);
+% end
+% Key_AES = aes_array_to_matrix(Key_AES);
+% fclose(fdata_key);
+% clear A
+% 
+% %----------Read input data-------------------------------------------------
+% fdata_in = fopen('aes_input_data.dat', 'r');
+% 
+% Input_data_length = fscanf(fdata_in, '%d', 1);
+% 
+% n = 1;
+% A = fscanf(fdata_in, '%c', 1);
+% for i = 1 : Input_data_length
+%     for j = 1:8
+%         Input_data_full_str = fscanf(fdata_in, '%c', 1);
+%         Input_data_full(n) = str2num(Input_data_full_str);
+%         n = n + 1;
+%     end
+%     A = fscanf(fdata_in, '%c', 1);
+% end
+% fclose(fdata_in);
+% clear A
 
-Key_AES_length = fscanf(fdata_key, '%d', 1);
 
-n = 1;
-A = fscanf(fdata_key, '%c', 1);
-for i = 1 : Key_AES_length
-    for j = 1:8
-        Key_AES_str = fscanf(fdata_key, '%c', 1);
-        Key_AES(n) = str2num(Key_AES_str);
-        n = n + 1;
-    end
-    A = fscanf(fdata_key, '%c', 1);
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%-----Generate random massive input data and keys--------------------------
+Input_data_frame = 100; %value frame
+[ Input_data_full, Key_AES_full ] = aes_128_gen_indata_key(Input_data_frame*128);
+Input_data_length = Input_data_frame*16;
+
+
+%----Write input data and keys in file-------------------------------------
+Input_data_hex_full = '';
+Key_AES_hex_full = '';
+
+
+for i = 0 : Input_data_frame - 1
+    
+    Input_data_matrix = aes_array_to_matrix(Input_data_full(128*i + 1 : 128*(i + 1)));
+    Input_data_hex = aes_array128_to_hex_colums(Input_data_matrix);
+    Input_data_hex_full = [Input_data_hex_full  Input_data_hex];
+    
+    Key_AES_matrix = aes_array_to_matrix(Key_AES_full(128*i + 1 : 128*(i + 1)));
+    Key_AES_hex = aes_array128_to_hex_colums(Key_AES_matrix);
+    Key_AES_hex_full = [Key_AES_hex_full Key_AES_hex];
 end
-Key_AES = aes_array_to_matrix(Key_AES);
-fclose(fdata_key);
-clear A
+%-------------------Write input data---------------------------------------
+fdata_in_hex = fopen('aes_input_data_hex.dat', 'wb');
+fprintf(fdata_in_hex, '%d\n', Input_data_frame);
 
-%----------Read input data-------------------------------------------------
-fdata_in = fopen('aes_input_data.dat', 'r');
-
-Input_data_length = fscanf(fdata_in, '%d', 1);
-
-n = 1;
-A = fscanf(fdata_in, '%c', 1);
-for i = 1 : Input_data_length
-    for j = 1:8
-        Input_data_full_str = fscanf(fdata_in, '%c', 1);
-        Input_data_full(n) = str2num(Input_data_full_str);
-        n = n + 1;
-    end
-    A = fscanf(fdata_in, '%c', 1);
+for i = 0:Input_data_frame-1 
+for n = 1:31
+    fprintf(fdata_in_hex, '%c', Input_data_hex_full(32*i + n));
 end
-fclose(fdata_in);
-clear A
+    fprintf(fdata_in_hex, '%c\n', Input_data_hex_full(32*i + 32));
+end
 
+fclose(fdata_in_hex);
+%-----------------Write Key_AES--------------------------------------------
+fkey_hex = fopen('aes_key_hex.dat', 'wb');
+fprintf(fkey_hex, '%d\n', Input_data_frame);
+
+for i = 0:Input_data_frame-1 
+for n = 1:31
+    fprintf(fkey_hex, '%c', Key_AES_hex_full(32*i + n));
+end
+    fprintf(fkey_hex, '%c\n', Key_AES_hex_full(32*i + 32));
+end
+
+fclose(fkey_hex);
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+
+
+
+%-----Encryption data------------------------------------------------------
 for section = 0 : Input_data_length/16 - 1
     
 Input_data = aes_array_to_matrix(Input_data_full(128*section + 1 : 128*(section + 1)));
+
+%--------------------------------------------------------------------------
+%If Key_AES generate random
+Key_AES = aes_array_to_matrix(Key_AES_full(128*section + 1 : 128*(section + 1)));
+%--------------------------------------------------------------------------
 
 
 %--------------------------KeyExpension------------------------------------
@@ -108,7 +168,8 @@ end
 
 Encrypted_Data = RoundData;
 
-Encrypted_Data_hex = aes_array128_to_hex(Encrypted_Data);%debug
+% Encrypted_Data_hex = aes_array128_to_hex(Encrypted_Data);%debug
+% Encrypted_Data_hex1 = aes_array128_to_hex_colums(Encrypted_Data);%debug
 
 Enc0 = [Encrypted_Data(1,1:8) Encrypted_Data(2,1:8) Encrypted_Data(3,1:8) Encrypted_Data(4,1:8)];
 Enc1 = [Encrypted_Data(1,9:16) Encrypted_Data(2,9:16) Encrypted_Data(3,9:16) Encrypted_Data(4,9:16)];
@@ -151,7 +212,27 @@ end
 
 fclose(fdata_out);
 
+%-------------------Write output data hex----------------------------------
+Encrypted_Data_hex_full = '';
+for i = 0 : Input_data_frame - 1
+    
+    Encrypted_Data_full_matrix = aes_array_to_matrix(Encrypted_Data_full(128*i + 1 : 128*(i + 1)));
+    Encrypted_Data_hex_f = aes_array128_to_hex_colums(Encrypted_Data_full_matrix);
+    Encrypted_Data_hex_full = [Encrypted_Data_hex_full  Encrypted_Data_hex_f];
+    
+end
 
+fdata_out_hex = fopen('aes_output_data_hex.dat', 'wb');
+fprintf(fdata_out_hex, '%d\n', Input_data_frame);
+
+for i = 0:Input_data_frame-1 
+for n = 1:31
+    fprintf(fdata_out_hex, '%c', Encrypted_Data_hex_full(32*i + n));
+end
+    fprintf(fdata_out_hex, '%c\n', Encrypted_Data_hex_full(32*i + 32));
+end
+
+fclose(fdata_out_hex);
 
 
 
